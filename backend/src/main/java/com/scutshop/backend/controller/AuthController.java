@@ -1,0 +1,117 @@
+package com.scutshop.backend.controller;
+
+import com.scutshop.backend.model.User;
+import com.scutshop.backend.security.JwtTokenProvider;
+import com.scutshop.backend.service.UserService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/auth")
+public class AuthController {
+    private final UserService userService;
+    private final JwtTokenProvider tokenProvider;
+    private final org.springframework.security.authentication.AuthenticationManager authenticationManager;
+
+    private final com.scutshop.backend.service.RefreshTokenService refreshTokenService;
+
+    public AuthController(UserService userService, JwtTokenProvider tokenProvider,
+            org.springframework.security.authentication.AuthenticationManager authenticationManager,
+            com.scutshop.backend.service.RefreshTokenService refreshTokenService) {
+        this.userService = userService;
+        this.tokenProvider = tokenProvider;
+        this.authenticationManager = authenticationManager;
+        this.refreshTokenService = refreshTokenService;
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody Map<String, String> body) {
+        String username = body.get("username");
+        String email = body.get("email");
+        String password = body.get("password");
+        if (username == null || email == null || password == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "missing_fields"));
+        }
+        User existing = userService.findByUsername(username);
+        if (existing != null) {
+            return ResponseEntity.status(409).body(Map.of("error", "username_exists"));
+        }
+        User u = new User();
+        u.setUsername(username);
+        u.setEmail(email);
+        userService.createUser(u, password);
+        return ResponseEntity.ok(Map.of("status", "registered"));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody com.scutshop.backend.dto.AuthRequest request) {
+        try {
+            var authToken = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                    request.getUsername(), request.getPassword());
+            var auth = authenticationManager.authenticate(authToken);
+            java.util.List<String> roles = userService
+                    .findRolesByUserId(userService.findByUsername(request.getUsername()).getId());
+            String token = tokenProvider.generateToken(request.getUsername(), roles);
+            long expires = Long.parseLong(java.util.Optional.ofNullable(System.getenv("JWT_EXPIRES_MIN")).orElse("60"));
+
+            // create refresh token
+            Long userId = userService.findByUsername(request.getUsername()).getId();
+            String refresh = refreshTokenService.createRefreshToken(userId);
+
+            return ResponseEntity.ok(new com.scutshop.backend.dto.AuthResponse(token, expires, refresh));
+        } catch (org.springframework.security.core.AuthenticationException ex) {
+            return ResponseEntity.status(401).body(Map.of("error", "invalid_credentials"));
+        }
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh(@RequestBody com.scutshop.backend.dto.RefreshRequest request) {
+        if (request == null || request.getRefreshToken() == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "missing_refresh_token"));
+        }
+        var rt = refreshTokenService.verify(request.getRefreshToken());
+        if (rt == null)
+            return ResponseEntity.status(401).body(Map.of("error", "invalid_refresh_token"));
+        // generate new access token and rotate refresh token
+        var user = userService.findById(rt.getUserId());
+        if (user == null)
+            return ResponseEntity.status(401).body(Map.of("error", "user_not_found"));
+        var username = user.getUsername();
+        var roles = userService.findRolesByUserId(user.getId());
+        String token = tokenProvider.generateToken(username, roles);
+        // rotate: revoke old and create new
+        refreshTokenService.revokeByToken(request.getRefreshToken());
+        String newRefresh = refreshTokenService.createRefreshToken(user.getId());
+        long expires = Long.parseLong(java.util.Optional.ofNullable(System.getenv("JWT_EXPIRES_MIN")).orElse("60"));
+        return ResponseEntity.ok(new com.scutshop.backend.dto.AuthResponse(token, expires, newRefresh));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestBody(required = false) com.scutshop.backend.dto.RefreshRequest request,
+            org.springframework.security.core.Authentication authentication) {
+        if (request != null && request.getRefreshToken() != null) {
+            refreshTokenService.revokeByToken(request.getRefreshToken());
+            return ResponseEntity.ok(Map.of("status", "logged_out"));
+        }
+        if (authentication != null && authentication.isAuthenticated()) {
+            // revoke all tokens for the current user
+            var u = userService.findByUsername(authentication.getName());
+            if (u != null) {
+                refreshTokenService.revokeAllForUser(u.getId());
+            }
+            return ResponseEntity.ok(Map.of("status", "logged_out"));
+        }
+        return ResponseEntity.badRequest().body(Map.of("error", "no_token_or_user"));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> me(org.springframework.security.core.Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).build();
+        }
+        return ResponseEntity
+                .ok(Map.of("username", authentication.getName(), "authorities", authentication.getAuthorities()));
+    }
+}

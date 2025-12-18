@@ -9,4 +9,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON scut_shop.* TO 'scut_user'@'%';
 CREATE USER IF NOT EXISTS 'scut_migrate'@'%' IDENTIFIED BY 'change_me_migrate_pw';
 GRANT ALL PRIVILEGES ON scut_shop.* TO 'scut_migrate'@'%';
 
+-- Ensure default roles exist
+INSERT INTO role (name, description) VALUES ('ROLE_USER', 'Default user') ON DUPLICATE KEY UPDATE name=name;
+INSERT INTO role (name, description) VALUES ('ROLE_ADMIN', 'Administrator') ON DUPLICATE KEY UPDATE name=name;
+
 FLUSH PRIVILEGES;

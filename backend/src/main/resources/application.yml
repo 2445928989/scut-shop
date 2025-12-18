@@ -1,0 +1,28 @@
+server:
+  port: ${APP_PORT:8080}
+
+spring:
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME}?useSSL=false&serverTimezone=UTC&useUnicode=true&characterEncoding=UTF-8
+    username: ${DB_USER:scut_user}
+    password: ${DB_PASSWORD:changeme_db_pw}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_SMTP_PORT:25}
+
+jwt:
+  secret: ${JWT_SECRET:replace_with_a_long_random_secret}
+  expires-min: ${JWT_EXPIRES_MIN:60}
+  refresh-expires-days: ${JWT_REFRESH_EXPIRES_DAYS:7}
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.scutshop.backend.model
+
+logging:
+  level:
+    root: INFO
+    com.scutshop: DEBUG
