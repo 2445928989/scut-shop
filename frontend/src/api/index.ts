@@ -1,0 +1,68 @@
+import axios from 'axios'
+
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8080'
+const instance = axios.create({
+    baseURL: API_BASE
+})
+
+instance.interceptors.request.use((config) => {
+    const token = localStorage.getItem('accessToken')
+    if (token && config.headers) {
+        config.headers.Authorization = `Bearer ${token}`
+    }
+    // attach guest cart id if present and no auth header set
+    const cartId = localStorage.getItem('cartId')
+    if (cartId && config.headers && !config.headers.Authorization) {
+        config.headers['X-Cart-Id'] = cartId
+    }
+    return config
+})
+
+// response interceptor: on 401 try to refresh access token using refresh token
+let refreshPromise: Promise<string | null> | null = null
+
+instance.interceptors.response.use(
+    (r) => r,
+    async (error) => {
+        const original = error.config
+        if (!original) return Promise.reject(error)
+        if (error.response && error.response.status === 401 && !original._retry) {
+            original._retry = true
+            const refreshToken = localStorage.getItem('refreshToken')
+            if (!refreshToken) return Promise.reject(error)
+
+            if (!refreshPromise) {
+                // use axios (not instance) to avoid infinite loop
+                refreshPromise = axios.post(`${API_BASE}/api/auth/refresh`, { refreshToken })
+                    .then(res => {
+                        const newAccess = res.data.accessToken
+                        const newRefresh = res.data.refreshToken
+                        if (newAccess) localStorage.setItem('accessToken', newAccess)
+                        if (newRefresh) localStorage.setItem('refreshToken', newRefresh)
+                        return newAccess
+                    })
+                    .catch(e => {
+                        // refresh failed: clear tokens
+                        localStorage.removeItem('accessToken')
+                        localStorage.removeItem('refreshToken')
+                        throw e
+                    })
+                    .finally(() => { refreshPromise = null })
+            }
+
+            try {
+                const newAccess = await refreshPromise
+                if (newAccess) {
+                    original.headers = original.headers || {}
+                    original.headers.Authorization = `Bearer ${newAccess}`
+                    return instance(original)
+                }
+            } catch (e) {
+                return Promise.reject(e)
+            }
+        }
+        return Promise.reject(error)
+    }
+)
+
+export default instance

@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "module": "ESNext",
+        "moduleResolution": "Node",
+        "target": "ES2020",
+        "types": [
+            "node",
+            "vite/client",
+            "lodash-es"
+        ],
+        "resolveJsonModule": true,
+        "composite": true,
+        "declaration": true
+    },
+    "include": [
+        "vite.config.ts"
+    ]
+}

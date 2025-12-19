@@ -28,21 +28,31 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody Map<String, String> body) {
+        org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AuthController.class);
+        log.debug("Register called with body: {}", body);
         String username = body.get("username");
         String email = body.get("email");
         String password = body.get("password");
         if (username == null || email == null || password == null) {
+            log.debug("Missing fields in register request: {}", body);
             return ResponseEntity.badRequest().body(Map.of("error", "missing_fields"));
         }
         User existing = userService.findByUsername(username);
         if (existing != null) {
+            log.debug("Username exists: {}", username);
             return ResponseEntity.status(409).body(Map.of("error", "username_exists"));
         }
-        User u = new User();
-        u.setUsername(username);
-        u.setEmail(email);
-        userService.createUser(u, password);
-        return ResponseEntity.ok(Map.of("status", "registered"));
+        try {
+            User u = new User();
+            u.setUsername(username);
+            u.setEmail(email);
+            userService.createUser(u, password);
+            log.info("User registered: {}", username);
+            return ResponseEntity.ok(Map.of("status", "registered"));
+        } catch (Exception ex) {
+            log.error("Error during registration for {}: {}", username, ex.toString(), ex);
+            return ResponseEntity.status(500).body(Map.of("error", "server_error"));
+        }
     }
 
     @PostMapping("/login")

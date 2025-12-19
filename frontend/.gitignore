@@ -1,0 +1,14 @@
+node_modules
+dist
+.env
+.env.local
+.vscode
+
+# Playwright & test outputs
+playwright-report
+test-results
+.playwright
+.cache/ms-playwright
+.vitest
+coverage
+.nyc_output

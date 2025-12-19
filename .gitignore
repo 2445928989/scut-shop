@@ -12,3 +12,16 @@
 target/
 build/
 .m2/
+
+# Playwright / frontend test artifacts
+# Ignore Playwright generated report files and test output directories
+playwright-report/
+**/playwright-report/
+test-results/
+**/test-results/
+.playwright/
+.cache/ms-playwright/
+
+# local frontend dev artifacts
+frontend/playwright-report/
+frontend/test-results/

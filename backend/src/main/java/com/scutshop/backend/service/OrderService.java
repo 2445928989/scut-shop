@@ -79,10 +79,15 @@ public class OrderService {
         // create payment record and process
         paymentService.processPayment(o, paymentMethod);
 
-        // send email to user
-        var user = userService.findById(userId);
-        if (user != null) {
-            emailService.sendPaymentConfirmation(user.getEmail(), o);
+        // send email to user (best-effort)
+        try {
+            var user = userService.findById(userId);
+            if (user != null) {
+                emailService.sendPaymentConfirmation(user.getEmail(), o);
+            }
+        } catch (Exception ex) {
+            // do not fail checkout for email/user lookup errors
+            System.err.println("Warning: failed to send payment email: " + ex.getMessage());
         }
 
         return o;
