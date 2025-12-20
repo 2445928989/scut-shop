@@ -35,7 +35,7 @@ public class ProductController {
     }
 
     @GetMapping("/products/{id}")
-    public ResponseEntity<?> get(@PathVariable Long id) {
+    public ResponseEntity<?> get(@PathVariable("id") Long id) {
         Product p = productService.findById(id);
         if (p == null)
             return ResponseEntity.notFound().build();
@@ -61,7 +61,7 @@ public class ProductController {
 
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @PutMapping("/admin/products/{id}")
-    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody ProductRequest req) {
+    public ResponseEntity<?> update(@PathVariable("id") Long id, @RequestBody ProductRequest req) {
         Product p = productService.findById(id);
         if (p == null)
             return ResponseEntity.notFound().build();
@@ -79,7 +79,7 @@ public class ProductController {
 
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @DeleteMapping("/admin/products/{id}")
-    public ResponseEntity<?> delete(@PathVariable Long id) {
+    public ResponseEntity<?> delete(@PathVariable("id") Long id) {
         productService.delete(id);
         return ResponseEntity.ok(Map.of("status", "deleted"));
     }

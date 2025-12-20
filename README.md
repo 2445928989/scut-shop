@@ -76,5 +76,3 @@ make test-integration-clean
   - 后端开发：`cd backend && mvn spring-boot:run`
   - 前端开发：`cd frontend && npm install && npm run dev`
   - 一键集成测试（见上文）：`make test-integration[-clean]`
-
-如果需要，我可以把与 CI 相关的示例工作流（GitHub Actions）也添加到仓库中以便持续集成。
