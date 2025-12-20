@@ -37,5 +37,8 @@ function logout(){
 </script>
 
 <style>
-.el-header{ background:#409EFF; padding:10px 20px }
+.el-header{ /* replaced by global styles */ }
+.el-header h2{ color:var(--header-text); margin:0; }
+.header-right{ display:flex; gap:12px; align-items:center; justify-content:flex-end }
+.username-pill{ display:inline-block }
 </style>
