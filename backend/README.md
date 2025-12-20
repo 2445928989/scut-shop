@@ -1,6 +1,6 @@
-# 后端（Spring Boot + MyBatis） - SCUT-Shop
+# 后端（Spring Boot + MyBatis）
 
-This is the backend skeleton for SCUT-Shop.
+后端实现用户认证、商品、购物车与订单等核心 API，以下说明用于本地开发与测试。
 
 快速启动（本地，使用仓库根目录的 docker-compose）：
 
