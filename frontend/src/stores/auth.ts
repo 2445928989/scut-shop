@@ -30,14 +30,25 @@ export const useAuthStore = defineStore('auth', {
             localStorage.setItem('username', username)
         },
         async register(username: string, email: string, password: string) {
-            const r = await api.post('/api/auth/register', { username, email, password })
-            // if activation required, backend will indicate activation sent
-            if (r.data && r.data.activation === 'sent') {
-                return r.data
+            try {
+                const r = await api.post('/api/auth/register', { username, email, password })
+                // if activation required, backend will indicate activation sent
+                if (r.data && r.data.activation === 'sent') {
+                    return r.data
+                }
+                // auto-login after successful register
+                await this.login(username, password)
+                return { status: 'registered' }
+            } catch (err: any) {
+                // Map backend errors (e.g., email_exists, username_exists) into a simple object
+                if (err && err.response && err.response.data && err.response.data.error) {
+                    return { error: err.response.data.error }
+                }
+                // Re-throw unexpected errors so callers/tests can handle them
+                throw err
             }
-            // auto-login after successful register
-            await this.login(username, password)
         },
+
         async refresh() {
             if (!this.refreshToken) throw new Error('no_refresh_token')
             const r = await axios.post('/api/auth/refresh', { refreshToken: this.refreshToken })

@@ -14,6 +14,9 @@ public interface UserMapper {
     @Select("SELECT * FROM `user` WHERE username = #{username} LIMIT 1")
     User selectByUsername(@Param("username") String username);
 
+    @Select("SELECT * FROM `user` WHERE email = #{email} LIMIT 1")
+    User selectByEmail(@Param("email") String email);
+
     @Insert("INSERT INTO `user` (username, email, password_hash, status, activation_token, activation_expires) VALUES (#{username}, #{email}, #{passwordHash}, #{status}, #{activationToken}, #{activationExpires})")
     @org.apache.ibatis.annotations.Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(User user);

@@ -45,6 +45,11 @@ public class AuthController {
             log.debug("Username exists: {}", username);
             return ResponseEntity.status(409).body(Map.of("error", "username_exists"));
         }
+        User existingEmail = userService.findByEmail(email);
+        if (existingEmail != null) {
+            log.debug("Email exists: {}", email);
+            return ResponseEntity.status(409).body(Map.of("error", "email_exists"));
+        }
         try {
             User u = new User();
             u.setUsername(username);

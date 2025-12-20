@@ -26,5 +26,11 @@ test-e2e-local:
 	@echo "Starting services for local E2E..."
 	EMAIL_ACTIVATION_ENABLED=true docker compose up -d --build
 	./scripts/wait_for_services.sh
-	cd frontend && EMAIL_ACTIVATION_ENABLED=true MYSQL_ROOT_PASSWORD=123456789 API_BASE=http://localhost:8081 MAILHOG_API=http://localhost:8025 npx playwright test e2e/activation-e2e.spec.ts --reporter=list || true
+	cd frontend && EMAIL_ACTIVATION_ENABLED=true MYSQL_ROOT_PASSWORD=123456789 API_BASE=http://localhost:8081 MAILHOG_API=http://localhost:8025 LOCAL_DEV=true npx playwright test e2e/activation-e2e.spec.ts --reporter=list || true
 	@echo "Local E2E finished"
+
+# Setup docker registry mirror (requires sudo)
+.PHONY: docker-setup-mirror
+docker-setup-mirror:
+	@echo "Configuring Docker registry mirror (you can override MIRROR_URL env or pass as argument)"
+	@./scripts/setup_docker_mirror.sh $(MIRROR_URL)

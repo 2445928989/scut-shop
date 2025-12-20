@@ -18,6 +18,10 @@ public class UserService {
         return userMapper.selectByUsername(username);
     }
 
+    public User findByEmail(String email) {
+        return userMapper.selectByEmail(email);
+    }
+
     public User findById(Long id) {
         return userMapper.selectById(id);
     }

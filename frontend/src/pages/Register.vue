@@ -22,6 +22,7 @@
 import { reactive } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -31,14 +32,27 @@ async function onSubmit(){
   try{
     const r = await auth.register(form.username, form.email, form.password)
     if (r && r.activation === 'sent') {
-      alert('已发送激活邮件，请检查邮箱并完成激活后登录')
+      ElMessage.success('已发送激活邮件，请检查邮箱并完成激活后登录')
       router.push('/')
       return
     }
+    if (r && r.error) {
+      // backend error codes -> user-friendly messages
+      if (r.error === 'email_exists') {
+        ElMessage.error('该邮箱已被注册，请尝试登录或使用其他邮箱')
+      } else if (r.error === 'username_exists') {
+        ElMessage.error('该用户名已被占用，请选择其他用户名')
+      } else {
+        ElMessage.error('注册失败：' + r.error)
+      }
+      return
+    }
+
+    ElMessage.success('注册并已登录')
     router.push('/')
   }catch(e){
     console.error(e)
-    alert('注册或登录失败')
+    ElMessage.error('注册或登录过程中发生错误，请稍后再试')
   }
 }
 
