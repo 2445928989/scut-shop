@@ -1,6 +1,7 @@
 import axios from 'axios'
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8080'
+// Use relative API base by default so browser requests go through the nginx proxy (/api)
+const API_BASE = import.meta.env.VITE_API_BASE || ''
 const instance = axios.create({
     baseURL: API_BASE
 })
@@ -33,7 +34,8 @@ instance.interceptors.response.use(
 
             if (!refreshPromise) {
                 // use axios (not instance) to avoid infinite loop
-                refreshPromise = axios.post(`${API_BASE}/api/auth/refresh`, { refreshToken })
+                // call refresh endpoint directly (same-origin) to avoid instance interceptors
+                refreshPromise = axios.post('/api/auth/refresh', { refreshToken })
                     .then(res => {
                         const newAccess = res.data.accessToken
                         const newRefresh = res.data.refreshToken

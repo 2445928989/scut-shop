@@ -2,7 +2,8 @@ import { defineStore } from 'pinia'
 import api from '../api'
 import axios from 'axios'
 
-const API_BASE = (import.meta.env.VITE_API_BASE || 'http://localhost:8080')
+// default to same origin; docker build can override VITE_API_BASE when necessary
+const API_BASE = (import.meta.env.VITE_API_BASE || '')
 
 export const useAuthStore = defineStore('auth', {
     state: () => ({
@@ -35,7 +36,7 @@ export const useAuthStore = defineStore('auth', {
         },
         async refresh() {
             if (!this.refreshToken) throw new Error('no_refresh_token')
-            const r = await axios.post(`${API_BASE}/api/auth/refresh`, { refreshToken: this.refreshToken })
+            const r = await axios.post('/api/auth/refresh', { refreshToken: this.refreshToken })
             this.setTokens(r.data.accessToken, r.data.refreshToken, r.data.expiresInMinutes)
             return r.data.accessToken
         },
