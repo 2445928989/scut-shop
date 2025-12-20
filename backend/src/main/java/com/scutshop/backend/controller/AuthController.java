@@ -16,14 +16,17 @@ public class AuthController {
     private final org.springframework.security.authentication.AuthenticationManager authenticationManager;
 
     private final com.scutshop.backend.service.RefreshTokenService refreshTokenService;
+    private final com.scutshop.backend.service.EmailService emailService;
 
     public AuthController(UserService userService, JwtTokenProvider tokenProvider,
             org.springframework.security.authentication.AuthenticationManager authenticationManager,
-            com.scutshop.backend.service.RefreshTokenService refreshTokenService) {
+            com.scutshop.backend.service.RefreshTokenService refreshTokenService,
+            com.scutshop.backend.service.EmailService emailService) {
         this.userService = userService;
         this.tokenProvider = tokenProvider;
         this.authenticationManager = authenticationManager;
         this.refreshTokenService = refreshTokenService;
+        this.emailService = emailService;
     }
 
     @PostMapping("/register")
@@ -46,8 +49,23 @@ public class AuthController {
             User u = new User();
             u.setUsername(username);
             u.setEmail(email);
+            boolean activationEnabled = "true".equals(System.getenv("EMAIL_ACTIVATION_ENABLED"));
+            if (activationEnabled)
+                u.setStatus(0);
             userService.createUser(u, password);
             log.info("User registered: {}", username);
+            if (activationEnabled) {
+                // generate activation token and send email
+                User created = userService.findByUsername(username);
+                String token = java.util.UUID.randomUUID().toString();
+                java.time.LocalDateTime expires = java.time.LocalDateTime.now().plusHours(24);
+                userService.setActivation(created.getId(), token, expires);
+                String frontendBase = java.util.Optional.ofNullable(System.getenv("FRONTEND_BASE"))
+                        .orElse("http://localhost:3000");
+                String link = frontendBase + "/activate?token=" + token;
+                emailService.sendActivationEmail(email, link);
+                return ResponseEntity.ok(Map.of("status", "registered", "activation", "sent"));
+            }
             return ResponseEntity.ok(Map.of("status", "registered"));
         } catch (Exception ex) {
             log.error("Error during registration for {}: {}", username, ex.toString(), ex);
@@ -60,7 +78,7 @@ public class AuthController {
         try {
             var authToken = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
                     request.getUsername(), request.getPassword());
-            var auth = authenticationManager.authenticate(authToken);
+            authenticationManager.authenticate(authToken);
             java.util.List<String> roles = userService
                     .findRolesByUserId(userService.findByUsername(request.getUsername()).getId());
             String token = tokenProvider.generateToken(request.getUsername(), roles);
@@ -123,5 +141,19 @@ public class AuthController {
         }
         return ResponseEntity
                 .ok(Map.of("username", authentication.getName(), "authorities", authentication.getAuthorities()));
+    }
+
+    @GetMapping("/activate")
+    public ResponseEntity<?> activate(@RequestParam("token") String token) {
+        if (token == null || token.isBlank())
+            return ResponseEntity.badRequest().body(Map.of("error", "missing_token"));
+        User u = userService.findByActivationToken(token);
+        if (u == null)
+            return ResponseEntity.status(404).body(Map.of("error", "invalid_token"));
+        if (u.getActivationExpires() != null && u.getActivationExpires().isBefore(java.time.LocalDateTime.now())) {
+            return ResponseEntity.status(400).body(Map.of("error", "token_expired"));
+        }
+        userService.activateUser(u.getId());
+        return ResponseEntity.ok(Map.of("status", "activated"));
     }
 }

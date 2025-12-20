@@ -11,6 +11,9 @@ public class User {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    private String activationToken;
+    private LocalDateTime activationExpires;
+
     // getters & setters
     public Long getId() {
         return id;
@@ -66,5 +69,21 @@ public class User {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getActivationToken() {
+        return activationToken;
+    }
+
+    public void setActivationToken(String activationToken) {
+        this.activationToken = activationToken;
+    }
+
+    public LocalDateTime getActivationExpires() {
+        return activationExpires;
+    }
+
+    public void setActivationExpires(LocalDateTime activationExpires) {
+        this.activationExpires = activationExpires;
     }
 }

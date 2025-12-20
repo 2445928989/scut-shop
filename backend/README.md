@@ -14,6 +14,11 @@
 - GET `/api/health` - 健康检查
 - POST `/api/auth/register` - 注册（请求体：`{username,email,password}`）
 
+Email activation (POC):
+- Set environment variable `EMAIL_ACTIVATION_ENABLED=true` to require email activation for new users.
+- Use `FRONTEND_BASE` to customize the activation link prefix (default `http://localhost:3000`).
+- For local dev the project includes MailHog (http://localhost:8025) to capture activation emails.
+
 后续建议：
 - 实现 JWT 鉴权与登录接口
 - 对复杂查询采用 MyBatis XML 或注解方式

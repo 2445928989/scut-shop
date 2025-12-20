@@ -29,7 +29,12 @@ const form = reactive({ username: '', email: '', password: '' })
 
 async function onSubmit(){
   try{
-    await auth.register(form.username, form.email, form.password)
+    const r = await auth.register(form.username, form.email, form.password)
+    if (r && r.activation === 'sent') {
+      alert('已发送激活邮件，请检查邮箱并完成激活后登录')
+      router.push('/')
+      return
+    }
     router.push('/')
   }catch(e){
     console.error(e)

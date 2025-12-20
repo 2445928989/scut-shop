@@ -20,4 +20,12 @@ public class EmailService {
         msg.setText("Your order " + order.getOrderNo() + " has been paid. Total: " + order.getTotalAmount());
         mailSender.send(msg);
     }
+
+    public void sendActivationEmail(String to, String activationLink) {
+        SimpleMailMessage msg = new SimpleMailMessage();
+        msg.setTo(to);
+        msg.setSubject("Activate your account");
+        msg.setText("Please activate your account by visiting the following link: " + activationLink);
+        mailSender.send(msg);
+    }
 }

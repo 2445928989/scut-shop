@@ -39,6 +39,10 @@
   ```
 - 运行 E2E（Playwright）：在 `frontend` 目录下运行 `CI=true npm run test:e2e`。
 
+Activation POC:
+- To enable email activation locally set `EMAIL_ACTIVATION_ENABLED=true` for the backend service and ensure MailHog is reachable at `http://localhost:8025` to capture outgoing emails (compose already includes a MailHog service).  
+- Use `FRONTEND_BASE` env var to customize activation link host (default `http://localhost:3000`).
+
 文档与测试
 
 详见 `doc/` 下的文档（包括 `TESTING.md`、`E2E-debugging.md`、`WRITING_GUIDELINES.md` 等）。

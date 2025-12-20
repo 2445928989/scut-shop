@@ -1,0 +1,64 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: 123456789
+          MYSQL_DATABASE: scut_shop
+        ports: ['3307:3306']
+        options: >-
+          --health-cmd "mysqladmin ping -h localhost --silent"
+          --health-interval 10s --health-timeout 5s --health-retries 5
+      mailhog:
+        image: mailhog/mailhog
+        ports: ['1025:1025','8025:8025']
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Build backend
+        run: |
+          cd backend
+          mvn -DskipTests package
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+      - name: Start backend
+        env:
+          DB_HOST: localhost
+          DB_PORT: 3306
+          DB_NAME: scut_shop
+          DB_USER: root
+          DB_PASSWORD: 123456789
+          EMAIL_ACTIVATION_ENABLED: true
+          FRONTEND_BASE: http://localhost:3000
+        run: |
+          cd backend
+          nohup java -jar target/*.jar &
+          sleep 10
+      - name: Run Playwright E2E
+        uses: microsoft/playwright-github-action@v1
+        with:
+          # use default install
+          run: npx playwright test e2e/activation-e2e.spec.ts --reporter=github
+        env:
+          API_BASE: http://localhost:8081
+          MAILHOG_API: http://localhost:8025/api/v2/messages
+          EMAIL_ACTIVATION_ENABLED: true
+          # DO NOT enable DB fallback in CI
+          ALLOW_DB_FALLBACK: false

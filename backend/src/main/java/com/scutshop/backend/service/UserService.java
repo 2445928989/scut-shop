@@ -28,21 +28,29 @@ public class UserService {
 
     public int createUser(User user, String plainPassword) {
         user.setPasswordHash(passwordEncoder.encode(plainPassword));
-        user.setStatus(1);
+        if (user.getStatus() == null)
+            user.setStatus(1);
         int n = userMapper.insert(user);
         // assign ROLE_USER
         Long roleId = userMapper.selectRoleIdByName("ROLE_USER");
         if (roleId == null) {
-            // create role if not exists
-            // simple insert; in tests you may want to promote role management to migration
-            // create role via SQL
-            // For now, attempt to insert via SQL
-            // (we'll run raw SQL to create role)
-            java.util.Map<String, Object> m = new java.util.HashMap<>();
+            // role not found; in dev/test environments this may be fine.
         }
         if (user.getId() != null && roleId != null) {
             userMapper.insertUserRole(user.getId(), roleId);
         }
         return n;
+    }
+
+    public User findByActivationToken(String token) {
+        return userMapper.selectByActivationToken(token);
+    }
+
+    public int setActivation(Long userId, String token, java.time.LocalDateTime expires) {
+        return userMapper.updateActivation(userId, token, expires);
+    }
+
+    public int activateUser(Long userId) {
+        return userMapper.updateStatusAndClearToken(userId, 1);
     }
 }

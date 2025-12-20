@@ -14,9 +14,19 @@ public interface UserMapper {
     @Select("SELECT * FROM `user` WHERE username = #{username} LIMIT 1")
     User selectByUsername(@Param("username") String username);
 
-    @Insert("INSERT INTO `user` (username, email, password_hash, status) VALUES (#{username}, #{email}, #{passwordHash}, #{status})")
+    @Insert("INSERT INTO `user` (username, email, password_hash, status, activation_token, activation_expires) VALUES (#{username}, #{email}, #{passwordHash}, #{status}, #{activationToken}, #{activationExpires})")
     @org.apache.ibatis.annotations.Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(User user);
+
+    @Select("SELECT * FROM `user` WHERE activation_token = #{token} LIMIT 1")
+    User selectByActivationToken(@Param("token") String token);
+
+    @org.apache.ibatis.annotations.Update("UPDATE `user` SET activation_token = #{token}, activation_expires = #{expires} WHERE id = #{id}")
+    int updateActivation(@Param("id") Long id, @Param("token") String token,
+            @Param("expires") java.time.LocalDateTime expires);
+
+    @org.apache.ibatis.annotations.Update("UPDATE `user` SET status = #{status}, activation_token = NULL, activation_expires = NULL WHERE id = #{id}")
+    int updateStatusAndClearToken(@Param("id") Long id, @Param("status") int status);
 
     @Select("SELECT id FROM `role` WHERE name = #{name} LIMIT 1")
     Long selectRoleIdByName(@Param("name") String name);

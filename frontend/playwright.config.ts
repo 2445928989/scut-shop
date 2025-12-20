@@ -21,7 +21,8 @@ export default defineConfig({
   webServer: {
     command: 'npm run dev',
     url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
+    // In CI we normally start the server, but in local test runs reuse the existing frontend
+    reuseExistingServer: true,
     timeout: 120_000
   }
 })

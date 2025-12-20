@@ -30,7 +30,11 @@ export const useAuthStore = defineStore('auth', {
             localStorage.setItem('username', username)
         },
         async register(username: string, email: string, password: string) {
-            await api.post('/api/auth/register', { username, email, password })
+            const r = await api.post('/api/auth/register', { username, email, password })
+            // if activation required, backend will indicate activation sent
+            if (r.data && r.data.activation === 'sent') {
+                return r.data
+            }
             // auto-login after successful register
             await this.login(username, password)
         },
