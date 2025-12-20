@@ -25,3 +25,8 @@ test-results/
 # local frontend dev artifacts
 frontend/playwright-report/
 frontend/test-results/
+
+# runtime / editor / system artifacts
+*.pid
+node_modules/
+frontend/node_modules/
