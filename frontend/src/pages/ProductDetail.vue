@@ -21,8 +21,17 @@ onMounted(async ()=>{
   product.value = r.data
 })
 
-function addToCart(){
-  if(product.value) cart.add(product.value.id, 1)
+async function addToCart(){
+  if (!product.value) return
+  // try to create / update server cart and persist cartId
+  try {
+    const r = await api.post('/api/cart/items', { productId: product.value.id, quantity: 1 })
+    const cartId = r.data && r.data.cartId
+    if (cartId) localStorage.setItem('cartId', cartId)
+  } catch (e) {
+    console.warn('addToCart (detail): server add failed, using local store', e)
+  }
+  cart.add(product.value.id, 1)
   alert('已加入购物车')
 }
 </script>
