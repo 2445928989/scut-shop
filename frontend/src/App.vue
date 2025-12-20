@@ -2,8 +2,12 @@
   <el-container style="min-height:100vh">
     <el-header>
       <el-row>
-        <el-col :span="18"><h2 style="color:white">SCUT Shop</h2></el-col>
-        <el-col :span="6" style="text-align:right">
+        <el-col :span="18">
+          <router-link to="/" class="header-brand">
+            <h2 style="color:var(--header-text);margin:0">SCUT Shop</h2>
+          </router-link>
+        </el-col>
+        <el-col :span="6" class="header-right" style="text-align:right">
           <router-link to="/">商品</router-link>
           <span style="margin-left: 12px"></span>
           <router-link to="/cart">购物车</router-link>
@@ -12,7 +16,7 @@
             <router-link to="/login">登录</router-link>
           </template>
           <template v-else>
-            <span>{{username}}</span>
+            <span class="username-pill">{{username}}</span>
             <el-button type="text" @click="logout" style="margin-left:12px">登出</el-button>
           </template>
         </el-col>

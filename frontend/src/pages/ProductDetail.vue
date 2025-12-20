@@ -1,8 +1,21 @@
 <template>
-  <div>
-    <h3>{{product?.name}}</h3>
-    <p>价格: ¥{{product?.price}}</p>
-    <el-button type="primary" @click="addToCart">加入购物车</el-button>
+  <div class="product-detail">
+    <el-row :gutter="20">
+      <el-col :span="12">
+        <div class="media">
+          <img v-if="product?.imageUrl" :src="product.imageUrl" alt="" />
+          <div v-else class="placeholder">暂无图片</div>
+        </div>
+      </el-col>
+      <el-col :span="12">
+        <div class="detail-content">
+          <h3 class="title">{{product?.name}}</h3>
+          <p class="price">¥{{product?.price}}</p>
+          <p class="desc">{{product?.description || '暂无描述'}}</p>
+          <el-button type="primary" size="large" @click="addToCart">加入购物车</el-button>
+        </div>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
