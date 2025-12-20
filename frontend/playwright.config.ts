@@ -9,7 +9,8 @@ export default defineConfig({
   reporter: [['list'], ['html', { outputFolder: 'playwright-report' }]],
   use: {
     baseURL: process.env.FRONTEND_BASE || 'http://localhost:3000',
-    headless: process.env.CI ? true : false,
+    // Allow forcing headless via environment variable (useful on CI or headless hosts)
+    headless: !!process.env.PLAYWRIGHT_HEADLESS || !!process.env.CI,
     viewport: { width: 1280, height: 720 },
     ignoreHTTPSErrors: true,
   },

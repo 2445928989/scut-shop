@@ -11,6 +11,7 @@
 - 后端：
   - 单元与集成测试：JUnit 5（运行：`mvn test`）
   - E2E profile（H2）：`mvn spring-boot:run -Dspring-boot.run.profiles=e2e`（详见 `backend/TESTING.md`）
+  - 在 compose 网络中运行后端集成测试（推荐，可复现）：在仓库根目录运行 `make test-integration`，或使用 `make test-integration-clean` 在运行前重建数据库并重新应用初始化脚本。
 
 产物与查看位置
 - Playwright 报告：`frontend/playwright-report/`（打开 `index.html` 可视化查看）
