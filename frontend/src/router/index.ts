@@ -14,4 +14,14 @@ const routes = [
 ]
 
 const router = createRouter({ history: createWebHistory(), routes })
+
+// Prevent authenticated users from visiting login/register pages
+router.beforeEach((to, from, next) => {
+    const isAuth = !!localStorage.getItem('accessToken')
+    if ((to.path === '/login' || to.path === '/register') && isAuth) {
+        return next('/')
+    }
+    next()
+})
+
 export default router

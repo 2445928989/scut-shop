@@ -8,7 +8,13 @@
           <span style="margin-left: 12px"></span>
           <router-link to="/cart">购物车</router-link>
           <span style="margin-left: 12px"></span>
-          <router-link to="/login">登录</router-link>
+          <template v-if="!isAuth">
+            <router-link to="/login">登录</router-link>
+          </template>
+          <template v-else>
+            <span>{{username}}</span>
+            <el-button type="text" @click="logout" style="margin-left:12px">登出</el-button>
+          </template>
         </el-col>
       </el-row>
     </el-header>
@@ -19,6 +25,15 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useAuthStore } from './stores/auth'
+
+const auth = useAuthStore()
+const isAuth = computed(() => !!auth.accessToken)
+const username = computed(() => auth.username)
+function logout(){
+  auth.logout()
+}
 </script>
 
 <style>
