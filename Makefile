@@ -34,3 +34,17 @@ test-e2e-local:
 docker-setup-mirror:
 	@echo "Configuring Docker registry mirror (you can override MIRROR_URL env or pass as argument)"
 	@./scripts/setup_docker_mirror.sh $(MIRROR_URL)
+
+# Fast deploy: build app image skipping tests & spring-boot repack to speed up iteration
+.PHONY: deploy-fast
+deploy-fast:
+	@echo "Building app image (fast mode: skip tests & repack)"
+	docker compose build --build-arg SKIP_TESTS=true --build-arg SKIP_REPACKAGE=true --build-arg MVN_THREADS=1C app
+	@echo "Starting app container"
+	docker compose up -d app
+
+# Dev: one-command local development (uses docker-compose.dev.yml to mount source and run dev servers)
+.PHONY: dev
+dev:
+	@echo "Starting development environment (backend mvn spring-boot:run, frontend npm run dev)"
+	@docker compose -f docker-compose.dev.yml up --build

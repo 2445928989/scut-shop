@@ -1,6 +1,6 @@
 # SCUT-Shop
 
-示例全栈电子商务项目（前端 Vue 3 + 后端 Spring Boot），用于开发、测试与教学场景。
+全栈在线购物网站（前端 Vue 3 + 后端 Spring Boot）。
 
 主要目录
 
@@ -39,9 +39,9 @@
   ```
 - 运行 E2E（Playwright）：在 `frontend` 目录下运行 `CI=true npm run test:e2e`。
 
-Activation POC:
-- To enable email activation locally set `EMAIL_ACTIVATION_ENABLED=true` for the backend service and ensure MailHog is reachable at `http://localhost:8025` to capture outgoing emails (compose already includes a MailHog service).  
-- Use `FRONTEND_BASE` env var to customize activation link host (default `http://localhost:3000`).
+激活演示（POC）：
+- 若要在本地启用邮件激活，请在后端服务中设置 `EMAIL_ACTIVATION_ENABLED=true`，并确保 MailHog 可以通过 `http://localhost:8025` 访问以捕获外发邮件（Compose 已包含 MailHog 服务）。  
+- 可使用环境变量 `FRONTEND_BASE` 来自定义激活链接的主机（默认 `http://localhost:3000`）。
 
 文档与测试
 
@@ -53,7 +53,7 @@ Activation POC:
 
 ---
 
-## 一键测试小结 ✅
+## 一键测试 ✅
 
 仓库提供了便捷的一键测试脚本与 Makefile 目标，推荐在本地开发或 CI 中复用：
 

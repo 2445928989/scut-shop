@@ -16,6 +16,8 @@
             <router-link to="/login">登录</router-link>
           </template>
           <template v-else>
+            <router-link v-if="isAdmin" to="/admin/products">管理</router-link>
+            <span style="margin-left: 12px"></span>
             <span class="username-pill">{{username}}</span>
             <el-button type="text" @click="logout" style="margin-left:12px">登出</el-button>
           </template>
@@ -34,7 +36,11 @@ import { useAuthStore } from './stores/auth'
 
 const auth = useAuthStore()
 const isAuth = computed(() => !!auth.accessToken)
+const isAdmin = computed(() => auth.isAdmin)
 const username = computed(() => auth.username)
+if (auth.accessToken) { // fetch user info on app start when token present
+  void auth.fetchMe()
+}
 function logout(){
   auth.logout()
 }

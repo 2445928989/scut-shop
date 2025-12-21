@@ -13,24 +13,37 @@ public interface ProductMapper {
         @Select({ "<script>",
                         "SELECT * FROM `product`",
                         "<where>",
+                        "<if test='status != null and status &gt;= 0'>",
+                        "  status = #{status}",
+                        "</if>",
+                        "<if test='status == null'>",
+                        "  status = 1",
+                        "</if>",
                         "<if test='q != null'>",
-                        "  (name LIKE CONCAT('%',#{q},'%') OR description LIKE CONCAT('%',#{q},'%'))",
+                        "  AND (name LIKE CONCAT('%',#{q},'%') OR description LIKE CONCAT('%',#{q},'%'))",
                         "</if>",
                         "</where>",
                         "ORDER BY created_at DESC",
                         "LIMIT #{limit} OFFSET #{offset}",
                         "</script>" })
-        List<Product> search(@Param("q") String q, @Param("limit") int limit, @Param("offset") int offset);
+        List<Product> search(@Param("q") String q, @Param("limit") int limit, @Param("offset") int offset,
+                        @Param("status") Integer status);
 
         @Select({ "<script>",
                         "SELECT COUNT(1) FROM `product`",
                         "<where>",
+                        "<if test='status != null and status &gt;= 0'>",
+                        "  status = #{status}",
+                        "</if>",
+                        "<if test='status == null'>",
+                        "  status = 1",
+                        "</if>",
                         "<if test='q != null'>",
-                        "  (name LIKE CONCAT('%',#{q},'%') OR description LIKE CONCAT('%',#{q},'%'))",
+                        "  AND (name LIKE CONCAT('%',#{q},'%') OR description LIKE CONCAT('%',#{q},'%'))",
                         "</if>",
                         "</where>",
                         "</script>" })
-        int count(@Param("q") String q);
+        int count(@Param("q") String q, @Param("status") Integer status);
 
         @Insert("INSERT INTO `product` (name, sku, description, price, stock, category_id, image_url, status) VALUES (#{name}, #{sku}, #{description}, #{price}, #{stock}, #{categoryId}, #{imageUrl}, #{status})")
         @Options(useGeneratedKeys = true, keyProperty = "id")
@@ -41,6 +54,9 @@ public interface ProductMapper {
 
         @Update("UPDATE `product` SET stock = stock - #{quantity} WHERE id = #{id} AND stock >= #{quantity}")
         int decrementStock(@Param("id") Long id, @Param("quantity") int quantity);
+
+        @Update("UPDATE `product` SET status = #{status}, updated_at=CURRENT_TIMESTAMP WHERE id = #{id}")
+        int setStatus(@Param("id") Long id, @Param("status") int status);
 
         @Delete("DELETE FROM `product` WHERE id = #{id}")
         int delete(@Param("id") Long id);

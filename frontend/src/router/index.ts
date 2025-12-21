@@ -5,6 +5,8 @@ import Login from '../pages/Login.vue'
 import Cart from '../pages/Cart.vue'
 import Register from '../pages/Register.vue'
 import Activate from '../pages/Activate.vue'
+import AdminProducts from '../pages/AdminProducts.vue'
+import { useAuthStore } from '../stores/auth'
 
 const routes = [
     { path: '/', component: Products },
@@ -12,16 +14,27 @@ const routes = [
     { path: '/login', component: Login },
     { path: '/register', component: Register },
     { path: '/activate', component: Activate },
-    { path: '/cart', component: Cart }
+    { path: '/cart', component: Cart },
+    { path: '/admin/products', component: AdminProducts }
 ]
 
 const router = createRouter({ history: createWebHistory(), routes })
 
 // Prevent authenticated users from visiting login/register pages
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
     const isAuth = !!localStorage.getItem('accessToken')
+    // if trying to visit login/register while authenticated, redirect home
     if ((to.path === '/login' || to.path === '/register') && isAuth) {
         return next('/')
+    }
+    // admin routes protection: require ROLE_ADMIN
+    if (to.path.startsWith('/admin')) {
+        const auth = useAuthStore()
+        // if token present but authorities not yet populated, fetch them (best-effort)
+        if (auth.accessToken && (!auth.authorities || auth.authorities.length === 0)) {
+            try { await auth.fetchMe() } catch (e) { /* ignore */ }
+        }
+        if (!auth.isAdmin) return next('/')
     }
     next()
 })

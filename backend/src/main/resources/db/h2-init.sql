@@ -96,3 +96,14 @@ CREATE TABLE IF NOT EXISTS "payment" (
 
 -- insert a default product
 INSERT INTO "product" (name, price, stock) VALUES ('Sample Product', 9.99, 100);
+
+-- product_audit for h2/init
+CREATE TABLE IF NOT EXISTS "product_audit" (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  product_id BIGINT NOT NULL,
+  action VARCHAR(32) NOT NULL,
+  actor VARCHAR(128) NOT NULL,
+  details CLOB,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+

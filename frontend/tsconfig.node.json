@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
-        "module": "ESNext",
-        "moduleResolution": "Node",
+        "module": "nodenext",
+        "moduleResolution": "nodenext",
         "target": "ES2020",
         "types": [
             "node",
@@ -10,7 +10,8 @@
         ],
         "resolveJsonModule": true,
         "composite": true,
-        "declaration": true
+        "declaration": true,
+        "ignoreDeprecations": "6.0"
     },
     "include": [
         "vite.config.ts"

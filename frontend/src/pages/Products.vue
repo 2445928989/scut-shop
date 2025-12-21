@@ -4,17 +4,20 @@
     <el-row :gutter="20">
       <el-col v-for="p in products" :key="p.id" :span="6">
         <el-card class="product-card">
-          <div class="media">
-            <img v-if="p.imageUrl" :src="p.imageUrl" alt=""/>
-            <div v-else class="placeholder">暂无图片</div>
-          </div>
-          <div class="content">
-            <h4 class="title">{{p.name}}</h4>
-            <p class="price">¥{{p.price}}</p>
-            <div class="actions">
-              <router-link :to="`/product/${p.id}`" class="view-link">查看</router-link>
-              <el-button type="primary" @click="addToCart(p.id)">加入购物车</el-button>
+          <router-link :to="`/product/${p.id}`" class="card-link">
+            <div class="media">
+              <img v-if="p.imageUrl" :src="p.imageUrl" alt=""/>
+              <div v-else class="placeholder">暂无图片</div>
             </div>
+            <div class="content">
+              <h4 class="title">{{p.name}}</h4>
+              <p class="price">¥{{p.price}}</p>
+              <p class="excerpt">{{ p.description || '暂无描述' }}</p>
+            </div>
+          </router-link>
+          <div class="actions">
+            <router-link :to="`/product/${p.id}`" class="view-link">查看</router-link>
+            <el-button type="primary" @click.stop="addToCart(p.id)">加入购物车</el-button>
           </div>
         </el-card>
       </el-col>

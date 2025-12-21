@@ -23,9 +23,10 @@ public class ProductController {
     @GetMapping("/products")
     public ResponseEntity<?> list(@RequestParam(value = "q", required = false) String q,
             @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "size", defaultValue = "20") int size) {
-        List<Product> items = productService.search(q, page, size);
-        int total = productService.count(q);
+            @RequestParam(value = "size", defaultValue = "20") int size,
+            @RequestParam(value = "status", required = false) Integer status) {
+        List<Product> items = productService.search(q, page, size, status);
+        int total = productService.count(q, status);
         Map<String, Object> resp = new HashMap<>();
         resp.put("items", items);
         resp.put("total", total);
@@ -61,26 +62,60 @@ public class ProductController {
 
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @PutMapping("/admin/products/{id}")
-    public ResponseEntity<?> update(@PathVariable("id") Long id, @RequestBody ProductRequest req) {
+    public ResponseEntity<?> update(@PathVariable("id") Long id, @RequestBody ProductRequest req,
+            org.springframework.security.core.Authentication authentication) {
         Product p = productService.findById(id);
         if (p == null)
             return ResponseEntity.notFound().build();
-        p.setName(req.getName());
-        p.setSku(req.getSku());
-        p.setDescription(req.getDescription());
-        p.setPrice(req.getPrice());
-        p.setStock(req.getStock());
-        p.setCategoryId(req.getCategoryId());
-        p.setImageUrl(req.getImageUrl());
-        p.setStatus(req.getStatus() == null ? p.getStatus() : req.getStatus());
+        int oldStatus = p.getStatus() == null ? 1 : p.getStatus();
+        if (req.getName() != null)
+            p.setName(req.getName());
+        if (req.getSku() != null)
+            p.setSku(req.getSku());
+        if (req.getDescription() != null)
+            p.setDescription(req.getDescription());
+        if (req.getPrice() != null)
+            p.setPrice(req.getPrice());
+        if (req.getStock() != null)
+            p.setStock(req.getStock());
+        if (req.getCategoryId() != null)
+            p.setCategoryId(req.getCategoryId());
+        if (req.getImageUrl() != null)
+            p.setImageUrl(req.getImageUrl());
+        if (req.getStatus() != null)
+            p.setStatus(req.getStatus());
         productService.update(p);
+        // if restored from 0 -> 1 record audit
+        if (oldStatus == 0 && p.getStatus() == 1 && authentication != null && authentication.isAuthenticated()) {
+            productService.restore(id, authentication.getName());
+        }
         return ResponseEntity.ok(Map.of("status", "updated"));
     }
 
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PostMapping("/admin/products/{id}/restore")
+    public ResponseEntity<?> restoreProduct(@PathVariable("id") Long id,
+            org.springframework.security.core.Authentication authentication) {
+        Product p = productService.findById(id);
+        if (p == null)
+            return ResponseEntity.notFound().build();
+        if (authentication == null || !authentication.isAuthenticated())
+            return ResponseEntity.status(401).body(Map.of("error", "unauthorized"));
+        productService.restore(id, authentication.getName());
+        return ResponseEntity.ok(Map.of("status", "restored", "id", id));
+    }
+
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @DeleteMapping("/admin/products/{id}")
-    public ResponseEntity<?> delete(@PathVariable("id") Long id) {
-        productService.delete(id);
-        return ResponseEntity.ok(Map.of("status", "deleted"));
+    public ResponseEntity<?> delete(@PathVariable("id") Long id,
+            org.springframework.security.core.Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body(Map.of("error", "unauthorized"));
+        }
+        String actor = authentication.getName();
+        int n = productService.delete(id, actor);
+        if (n == 0)
+            return ResponseEntity.status(404).body(Map.of("error", "not_found"));
+        return ResponseEntity.ok(Map.of("status", "deleted", "id", id));
     }
 }

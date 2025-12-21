@@ -10,7 +10,8 @@ export const useAuthStore = defineStore('auth', {
         accessToken: (localStorage.getItem('accessToken') as string | null) || null,
         refreshToken: (localStorage.getItem('refreshToken') as string | null) || null,
         username: (localStorage.getItem('username') as string | null) || null,
-        expiresIn: null as number | null
+        expiresIn: null as number | null,
+        authorities: [] as string[]
     }),
     actions: {
         setTokens(access: string | null, refresh: string | null, expiresIn: number | null = null) {
@@ -28,6 +29,8 @@ export const useAuthStore = defineStore('auth', {
             this.setTokens(r.data.accessToken, r.data.refreshToken, r.data.expiresInMinutes)
             this.username = username
             localStorage.setItem('username', username)
+            // fetch current user to populate authorities/isAdmin
+            try { await this.fetchMe() } catch (e) { /* ignore */ }
         },
         async register(username: string, email: string, password: string) {
             try {
@@ -53,14 +56,34 @@ export const useAuthStore = defineStore('auth', {
             if (!this.refreshToken) throw new Error('no_refresh_token')
             const r = await axios.post('/api/auth/refresh', { refreshToken: this.refreshToken })
             this.setTokens(r.data.accessToken, r.data.refreshToken, r.data.expiresInMinutes)
+            // refresh user authorities after rotating token
+            try { await this.fetchMe() } catch (e) { /* ignore */ }
             return r.data.accessToken
         },
+
+        async fetchMe() {
+            // populate authorities from /api/auth/me
+            try {
+                const r = await api.get('/api/auth/me')
+                const auths = r.data && r.data.authorities ? r.data.authorities.map((a: any) => a.authority ? a.authority : a) : []
+                this.authorities = auths
+                return auths
+            } catch (e: any) {
+                this.authorities = []
+                return []
+            }
+        },
+
         logout() {
             // best-effort revoke on server
             try { api.post('/api/auth/logout', { refreshToken: this.refreshToken }) } catch (e) { /* ignore */ }
             this.setTokens(null, null, null)
             this.username = null
+            this.authorities = []
             localStorage.removeItem('username')
         }
+    },
+    getters: {
+        isAdmin: (state) => state.authorities.includes('ROLE_ADMIN')
     }
 })

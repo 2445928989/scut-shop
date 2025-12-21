@@ -103,6 +103,50 @@ body {
     object-fit: cover
 }
 
+.product-card .media a,
+.product-card .card-link {
+    display: block;
+    width: 100%;
+    height: 100%;
+    color: inherit;
+    text-decoration: none;
+}
+
+.product-card .card-link {
+    display: block
+}
+
+.product-card .card-link .content {
+    padding: 14px
+}
+
+.product-card .content a.clickable {
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.product-card .content a.clickable:hover {
+    text-decoration: underline;
+}
+
+/* description excerpt (2 lines) */
+.product-card .excerpt {
+    margin: 8px 0 0 0;
+    color: var(--muted);
+    font-size: 13px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* subtle micro hover: increase lift & slightly darker shadow */
+.product-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 14px 40px rgba(3, 19, 40, 0.12)
+}
+
 .product-card .placeholder {
     color: var(--muted);
     font-size: 13px
