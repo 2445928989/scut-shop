@@ -10,11 +10,6 @@
         "test": "vitest",
         "test:unit": "vitest --run",
         "test:watch": "vitest",
-        "test:e2e": "playwright test",
-        "test:e2e:headed": "playwright test --headed",
-        "test:e2e:report": "playwright show-report",
-        "playwright:install": "npx playwright install",
-        "playwright:install:mirror": "cross-env PLAYWRIGHT_DOWNLOAD_HOST=https://npmmirror.com/mirrors/playwright PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT=120000 npx playwright install",
         "debug:add-to-cart": "node scripts/debug_add_to_cart.js",
         "debug:add-to-cart:repeat": "cross-env COUNT=20 node scripts/debug_add_to_cart_repeat.js"
     },
@@ -33,7 +28,6 @@
         "vue-router": "^4.2.0"
     },
     "devDependencies": {
-        "@playwright/test": "^1.57.0",
         "@testing-library/jest-dom": "^6.0.0",
         "@types/lodash-es": "^4.17.12",
         "@types/node": "^25.0.3",
@@ -42,7 +36,6 @@
         "cross-env": "^7.0.3",
         "eslint": "^8.0.0",
         "jsdom": "^21.0.0",
-        "playwright": "^1.40.0",
         "typescript": "^5.0.0",
         "vite": "^5.0.0",
         "vitest": "^1.0.0"
