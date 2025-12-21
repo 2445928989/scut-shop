@@ -37,7 +37,7 @@
   cd backend
   mvn spring-boot:run
   ```
-- 运行 E2E（Playwright）：在 `frontend` 目录下运行 `CI=true npm run test:e2e`。
+- 运行 E2E（Playwright）：（已从简化演示中移除。如需完整 E2E，请在非 demo 分支启用 Playwright。）
 
 激活演示（POC）：
 - 若要在本地启用邮件激活，请在后端服务中设置 `EMAIL_ACTIVATION_ENABLED=true`，并确保 MailHog 可以通过 `http://localhost:8025` 访问以捕获外发邮件（Compose 已包含 MailHog 服务）。  
