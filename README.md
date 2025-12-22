@@ -1,59 +1,45 @@
 # SCUT-Shop
 
-全栈在线购物网站（前端 Vue 3 + 后端 Spring Boot）。
+一个简化的全栈在线购物演示（前端 Vue 3 + 后端 Spring Boot）。本仓库已缩减为最小 demo，以便在本地快速启动与调试。
 
-主要目录
+快速开始（最小演示）
 
-- `frontend/` — 前端（Vue 3 + Vite + Pinia），含 Playwright E2E 测试。
-- `backend/` — 后端（Spring Boot + MyBatis），包含集成测试与 e2e profile。
-- `deploy/` — 本地一键启动的 docker-compose 配置。
-- `doc/` — 设计、测试与调试文档。
-
-快速开始（推荐）
-
-1. 复制环境变量示例并填写：
+1. 复制环境变量并编辑：
    ```bash
    cp .env.example .env
-   # 编辑 .env，填写 DB/Redis 等凭据
+   # 按需编辑 .env（主要是 DB/邮件相关配置）
    ```
-2. 启动所有服务（单条命令）：
+2. 使用 Docker Compose 启动（单条命令）：
    ```bash
    docker compose up -d --build
    ```
 3. 访问服务：
    - 前端（Nginx）: http://127.0.0.1:3000
-   - 健康检查（代理到后端）: http://127.0.0.1:3000/api/health
+   - MailHog（如启用）: http://127.0.0.1:8025
 
-注：为保持项目简单明了，所有高级自动化脚本和本地 registry 配置已归档到 `/archive`。 若需要恢复旧脚本，请查看 `/archive` 中的说明。
+注意：本分支移除了复杂的自动化脚本、Playwright E2E 和部分历史迁移脚本，仓库保留最必要的源码与 `docker-compose.yml` 以便快速演示与开发。若需恢复完整历史或测试，请在对应分支或 Git 历史中查找。
 
-开发与测试
+开发模式
 
-- 前端本地开发：
+- 前端开发：
   ```bash
   cd frontend
   npm install
   npm run dev
   ```
-- 后端本地开发：
+- 后端开发：
   ```bash
   cd backend
   mvn spring-boot:run
   ```
-- 运行 E2E（Playwright）：（已从简化演示中移除。如需完整 E2E，请在非 demo 分支启用 Playwright。）
 
-激活演示（POC）：
-- 若要在本地启用邮件激活，请在后端服务中设置 `EMAIL_ACTIVATION_ENABLED=true`，并确保 MailHog 可以通过 `http://localhost:8025` 访问以捕获外发邮件（Compose 已包含 MailHog 服务）。  
-- 可使用环境变量 `FRONTEND_BASE` 来自定义激活链接的主机（默认 `http://localhost:3000`）。
+问题排查（简要）
 
-文档与测试
-
-详见 `doc/` 下的文档（包括 `TESTING.md`、`E2E-debugging.md`、`WRITING_GUIDELINES.md` 等）。
-
-贡献流程
-
-建议在分支上提交变更并在 PR 描述中包含复现步骤与测试命令。
+- 检查容器状态： `docker compose ps`
+- 前端健康检查（代理至后端）： `curl -i http://localhost:3000/api/health`
 
 ---
+
 
 ## 一键测试 ✅
 
