@@ -27,20 +27,18 @@ E2E profile（H2）
   ```
 - 该 profile 允许 Playwright 测试调用 `/api/cart/**`、`/api/products/**` 等接口，便于本地自动化验证。
 
-## 在 compose 网络中运行集成测试（推荐） 🔧
+## 在 compose 网络中运行集成测试（说明） 🔧
 
-- 仓库根目录提供脚本 `scripts/run-integration-tests.sh` 和 Makefile 目标 `test-integration` / `test-integration-clean`，用于在 Docker Compose 的网络中运行集成测试（在 Maven 官方镜像中执行测试，连接到 `scut_mysql` 等服务）。
+为保持此分支为最小演示，早期用于在 compose 网络中运行集成测试的脚本和 Makefile 目标已被移除（这些工具可以在历史分支或完整分支中找到）。
 
-- 用法示例：
-  ```bash
-  # 运行集成测试（不重建 DB）
-  make test-integration
+如果需要在本地运行集成测试，请在 `backend/` 目录中使用 Maven（或在 CI 中设置专用 job）：
 
-  # 运行集成测试并先重建数据库（CLEAN 模式，会删除并重新创建测试 DB 并重新导入 schema/init 数据）
-  make test-integration-clean
-  ```
+```bash
+# 运行集成测试（在 backend 中）
+cd backend && mvn -Dtest=IntegrationTest test
+```
 
-- 注意：CLEAN 模式会在 `scut_mysql` 容器中执行 DROP/CREATE，并重新应用 `db/schema.sql` 与 `db/docker-init.sql`，会删除现有测试数据库中的数据，请谨慎使用。
+如需在 compose 网络中运行测试，请在非 demo 分支恢复对应脚本或在 CI 中创建相应的 job。
 
 注意
 - 若需可复现的数据库状态以进行集成测试，推荐使用 `src/test/resources/db/schema.sql`（测试资源），或在测试中使用 Testcontainers 来模拟真实的 MySQL 环境。

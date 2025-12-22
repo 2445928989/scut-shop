@@ -41,23 +41,15 @@
 ---
 
 
-## 一键测试 ✅
+## 集成测试（说明）
 
-仓库提供了便捷的一键测试脚本与 Makefile 目标，推荐在本地开发或 CI 中复用：
+为使本分支保持为一个最小演示（demo），仓库已移除一键测试脚本与 Makefile 目标。
 
-- `make test-integration` — 在 Docker Compose 的网络中运行后端集成测试（不重建数据库）。
-- `make test-integration-clean` — 在执行测试前重建 `scut_shop` 数据库（DROP/CREATE 并重新导入 `db/schema.sql` 与 `db/docker-init.sql`），保证测试以干净的数据库状态开始（注意：此操作会删除测试数据库中的所有数据）。
+如需运行集成测试，请在 `backend/` 目录使用 Maven（或在 CI 中设置专用 job）：
 
-示例（在仓库根目录）：
 ```bash
-# 在 Compose 网络中运行集成测试（不清理 DB）
-make test-integration
-
-# 运行并先清理数据库（CLEAN 模式）
-make test-integration-clean
+cd backend && mvn -Dtest=IntegrationTest test
 ```
-
-> 小贴士：如果你需要运行前端 E2E（Playwright），请在 `frontend` 目录下执行 `CI=true npm run test:e2e`，报告位于 `frontend/playwright-report/`（默认已在 `.gitignore` 中忽略）
 
 ---
 
