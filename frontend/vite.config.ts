@@ -5,5 +5,11 @@ export default defineConfig({
     plugins: [vue()],
     server: {
         port: 3000,
+        host: '0.0.0.0',
+        hmr: {
+            protocol: 'ws',
+            host: 'localhost',
+            port: 3000,
+        }
     },
 })

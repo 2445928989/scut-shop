@@ -1,6 +1,8 @@
 <template>
   <div>
     <h3>商品列表</h3>
+    <!-- 临时调试面板：显示原始后端响应（开发时用，后来会移除） -->
+    <pre v-if="debug" class="debug">{{ JSON.stringify(debug, null, 2) }}</pre>
     <el-row :gutter="20">
       <el-col v-for="p in products" :key="p.id" :span="6">
         <el-card class="product-card">
@@ -32,11 +34,18 @@ import { useCartStore } from '../stores/cart'
 
 const products = ref<any[]>([])
 const cart = useCartStore()
+const debug = ref<any>(null)
 
 onMounted(async()=>{
-  const r = await api.get('/api/products')
-  products.value = r.data && r.data.items ? r.data.items : r.data
-  console.log('loaded products', products.value)
+  try {
+    const r = await api.get('/api/products')
+    products.value = r.data && r.data.items ? r.data.items : r.data
+    debug.value = r.data
+    console.log('loaded products', products.value)
+  } catch (e:any) {
+    console.error('products fetch failed', e)
+    debug.value = { error: String(e), response: e && e.response ? e.response.data : null }
+  }
 })
 
 async function addToCart(id:number){

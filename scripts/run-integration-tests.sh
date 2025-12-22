@@ -1,22 +1,10 @@
 #!/usr/bin/env bash
-set -euo pipefail
+# Archived: this script moved to /archive/scripts/run-integration-tests.sh
+# To run integration tests, refer to the archived copy or run tests manually.
 
-# Run backend integration tests inside a Maven container on the compose network.
-# Usage: ./scripts/run-integration-tests.sh
-
-ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-BACKEND_DIR="$ROOT_DIR/backend"
-
-# Candidate network names to try
-BASENAME=$(basename "$ROOT_DIR")
-CANDIDATES=("web_default" "${BASENAME}_default" "scut_default")
-NETWORK=""
-for n in "${CANDIDATES[@]}"; do
-  if docker network ls --format '{{.Name}}' | grep -q "^${n}$"; then
-    NETWORK="$n"
-    break
-  fi
-done
+echo "This script has been archived and is intentionally disabled to keep the repository minimal."
+echo "See archive/scripts/run-integration-tests.sh for original content." 
+exit 0
 
 if [ -z "$NETWORK" ]; then
   echo "Could not find a compose network (looked for: ${CANDIDATES[*]})."

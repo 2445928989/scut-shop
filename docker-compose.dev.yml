@@ -2,6 +2,7 @@ version: '3.8'
 services:
   db:
     image: mysql:8.0
+    container_name: scut_db
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
@@ -15,17 +16,26 @@ services:
       - ./db/docker-init.sql:/docker-entrypoint-initdb.d/2_init_users.sql:ro
   mailhog:
     image: mailhog/mailhog
+    container_name: scut_mailhog
     ports:
       - "8025:8025"
       - "1025:1025"
   redis:
     image: redis:7
+    container_name: scut_redis
     ports:
       - "6379:6379"
+  adminer:
+    image: adminer
+    container_name: scut_adminer
+    ports:
+      - "8080:8080"
   app:
     build:
       context: ./backend
       target: dev
+    container_name: scut_app
+    env_file: .env
     working_dir: /workspace
     command: mvn -DskipTests spring-boot:run
     volumes:
@@ -39,24 +49,40 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - EMAIL_ACTIVATION_ENABLED=true
       - FRONTEND_BASE=http://localhost:3000
+      - MAIL_HOST=mailhog
+      - MAIL_SMTP_PORT=1025
+      - MAIL_TLS=false
+      - MAIL_SSL=false
     ports:
       - "8081:8080"
     depends_on:
       - db
       - mailhog
       - redis
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/api/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
   frontend:
-    working_dir: /src
+    container_name: scut_frontend
+    working_dir: /app
     build:
       context: ./frontend
-    command: sh -c "npm install --silent && npm run dev"
+      target: builder
+    command: sh -c "npm ci --silent && npm run dev -- --host 0.0.0.0"
     volumes:
-      - ./frontend:/src
-      - /src/node_modules
+      - ./frontend:/app
+      - /app/node_modules
     ports:
-      - "3000:5173"
+      - "3000:3000"
     environment:
       - VITE_API_BASE=http://localhost:8081
+      - CHOKIDAR_USEPOLLING=true
+    depends_on:
+      app:
+        condition: service_healthy
 volumes:
   db_data_dev:
 

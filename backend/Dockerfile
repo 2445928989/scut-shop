@@ -29,3 +29,11 @@ COPY --from=builder /workspace/target/${APP_JAR} ./app.jar
 EXPOSE 8080
 ENV JAVA_OPTS=""
 ENTRYPOINT ["sh","-c","java $JAVA_OPTS -jar /app/app.jar"]
+
+# Dev stage for local development (used by docker-compose.dev.yml build target)
+FROM maven:3.9.0-eclipse-temurin-17 AS dev
+WORKDIR /workspace
+# Copy sources so container can run 'mvn spring-boot:run' (overridden by mount in compose)
+COPY pom.xml ./
+COPY src ./src
+CMD ["mvn","-DskipTests","spring-boot:run"]

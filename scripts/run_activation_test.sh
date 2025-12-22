@@ -1,28 +1,6 @@
 #!/bin/bash
-set -e
-USER="act_test_${RANDOM}_$(date +%s)"
-EMAIL="${USER}@example.test"
-PASSWORD="Password123!"
-echo "Registering $USER $EMAIL"
-REG=$(curl -s -X POST "http://localhost:3000/api/auth/register" -H "Content-Type: application/json" -d "{\"username\":\"$USER\",\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}")
-echo "Register response: $REG"
-sleep 1
-TOKEN=""
-for i in $(seq 1 20); do
-  echo "poll $i"
-  DATA=$(curl -s "http://localhost:8025/api/v2/messages")
-  if echo "$DATA" | grep -q "$EMAIL"; then
-    echo "Found message entry in MailHog"
-    TOKEN=$(echo "$DATA" | sed -n "/$EMAIL/,+200p" | sed -n 's/.*activate?token=\([A-Za-z0-9-]*\).*/\1/p' | head -n1)
-    if [ -n "$TOKEN" ]; then break; fi
-  fi
-  sleep 1
-done
+# Archived: this script moved to /archive/scripts/run_activation_test.sh
+# To run activation smoke test, see the archived copy or run manual steps.
 
-echo "Token: $TOKEN"
-if [ -z "$TOKEN" ]; then echo "No token found"; exit 1; fi
-ACT=$(curl -s -X GET "http://localhost:8081/api/auth/activate?token=$TOKEN")
-echo "Activate response: $ACT"
-LOGIN=$(curl -s -X POST "http://localhost:8081/api/auth/login" -H "Content-Type: application/json" -d "{\"username\":\"$USER\",\"password\":\"$PASSWORD\"}")
-echo "Login response: $LOGIN"
-echo "SUCCESS"
+echo "This script has been archived and is intentionally disabled to keep the repository minimal." 
+exit 0

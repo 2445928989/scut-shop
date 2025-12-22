@@ -1,7 +1,7 @@
 services:
   db:
     image: mysql:8.0
-    container_name: scut_mysql
+    container_name: scut_db
     env_file: .env
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
@@ -66,6 +66,12 @@ services:
       - db
       - redis
       - mailhog
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/api/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
     restart: unless-stopped
 
   frontend:
@@ -77,7 +83,8 @@ services:
     ports:
       - "3000:80"
     depends_on:
-      - app
+      app:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:

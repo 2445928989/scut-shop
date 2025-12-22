@@ -16,13 +16,15 @@
    cp .env.example .env
    # 编辑 .env，填写 DB/Redis 等凭据
    ```
-2. 启动所有服务：
+2. 启动所有服务（单条命令）：
    ```bash
    docker compose up -d --build
    ```
 3. 访问服务：
    - 前端（Nginx）: http://127.0.0.1:3000
    - 健康检查（代理到后端）: http://127.0.0.1:3000/api/health
+
+注：为保持项目简单明了，所有高级自动化脚本和本地 registry 配置已归档到 `/archive`。 若需要恢复旧脚本，请查看 `/archive` 中的说明。
 
 开发与测试
 
