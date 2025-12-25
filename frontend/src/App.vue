@@ -15,6 +15,8 @@
           <template v-if="isAdmin">
             <router-link to="/admin/products">商品管理</router-link>
             <router-link to="/admin/orders">订单管理</router-link>
+            <router-link to="/admin/reports">销售报表</router-link>
+            <router-link to="/admin/users">用户日志</router-link>
           </template>
           <span class="username-pill">{{username}}</span>
           <el-button type="text" @click="logout">登出</el-button>

@@ -79,6 +79,9 @@ public class OrderService {
         // create payment record and process
         paymentService.processPayment(o, paymentMethod);
 
+        // Log purchase
+        userService.logAction(userId, "PURCHASE", "Order No: " + o.getOrderNo() + ", Total: ¥" + o.getTotalAmount());
+
         // send email to user (best-effort)
         try {
             var user = userService.findById(userId);
@@ -134,5 +137,14 @@ public class OrderService {
                 "OrderService.updateStatus: id=" + orderId + ", status=" + status + ", paymentStatus=" + paymentStatus);
         orderMapper.updateOrderStatus(orderId, status, paymentStatus);
         System.out.println("OrderService.updateStatus: success");
+    }
+
+    public java.util.Map<String, Object> getSalesStats() {
+        java.util.Map<String, Object> stats = new java.util.HashMap<>();
+        stats.put("totalSales", orderMapper.selectTotalSales());
+        stats.put("totalOrders", orderMapper.countAll());
+        stats.put("dailySales", orderMapper.selectDailySales());
+        stats.put("topProducts", orderMapper.selectTopProducts());
+        return stats;
     }
 }

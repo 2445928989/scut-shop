@@ -116,4 +116,10 @@ public class OrderController {
                     .body(Map.of("error", e.getMessage() != null ? e.getMessage() : e.toString()));
         }
     }
+
+    @GetMapping("/admin/statistics")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getStatistics() {
+        return ResponseEntity.ok(orderService.getSalesStats());
+    }
 }

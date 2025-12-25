@@ -36,14 +36,6 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="支付状态" width="120">
-        <template #default="{ row }">
-          <el-tag :type="row.paymentStatus === 1 ? 'success' : 'warning'">
-            {{ row.paymentStatus === 1 ? '已支付' : '未支付' }}
-          </el-tag>
-        </template>
-      </el-table-column>
-
       <el-table-column prop="createdAt" label="下单时间" width="180">
         <template #default="{ row }">{{ formatDate(row.createdAt) }}</template>
       </el-table-column>
@@ -75,12 +67,6 @@
             <el-option label="已发货" :value="2" />
             <el-option label="已完成" :value="3" />
             <el-option label="已取消" :value="4" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="支付状态">
-          <el-select v-model="editForm.paymentStatus" placeholder="请选择">
-            <el-option label="未支付" :value="0" />
-            <el-option label="已支付" :value="1" />
           </el-select>
         </el-form-item>
       </el-form>

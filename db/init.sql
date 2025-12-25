@@ -153,6 +153,17 @@ CREATE TABLE IF NOT EXISTS `payment` (
   KEY `idx_payment_order` (`order_id`),
   CONSTRAINT `fk_payment_order` FOREIGN KEY (`order_id`) REFERENCES `order` (`id`) ON DELETE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '支付记录表';
+-- 用户日志表
+CREATE TABLE IF NOT EXISTS `user_log` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` BIGINT UNSIGNED NOT NULL,
+  `action` VARCHAR(50) NOT NULL COMMENT 'BROWSE_PRODUCT, PURCHASE, etc.',
+  `details` TEXT,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_user_log_user` (`user_id`),
+  CONSTRAINT `fk_user_log_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '用户日志表';
 SET FOREIGN_KEY_CHECKS = 1;
 -- ============================================================================
 -- 2. 初始化默认角色

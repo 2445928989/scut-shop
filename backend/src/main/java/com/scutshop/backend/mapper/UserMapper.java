@@ -40,4 +40,10 @@ public interface UserMapper {
 
     @Select("SELECT r.name FROM `role` r JOIN `user_role` ur ON r.id = ur.role_id WHERE ur.user_id = #{userId}")
     java.util.List<String> selectRolesByUserId(@Param("userId") Long userId);
+
+    @Select("SELECT * FROM `user` ORDER BY created_at DESC LIMIT #{limit} OFFSET #{offset}")
+    java.util.List<User> selectAll(@Param("limit") int limit, @Param("offset") int offset);
+
+    @Select("SELECT COUNT(1) FROM `user`")
+    int countAll();
 }

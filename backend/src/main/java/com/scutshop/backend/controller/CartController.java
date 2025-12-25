@@ -60,6 +60,16 @@ public class CartController {
                 cid = cartId;
         }
         CartItem it = cartService.addItem(cid, req.getProductId(), req.getQuantity());
+
+        // Log action if user is authenticated
+        if (authentication != null && authentication.isAuthenticated()) {
+            var u = userService.findByUsername(authentication.getName());
+            if (u != null) {
+                userService.logAction(u.getId(), "ADD_TO_CART",
+                        "Product ID: " + req.getProductId() + ", Quantity: " + req.getQuantity());
+            }
+        }
+
         return ResponseEntity.ok(Map.of("status", "ok", "cartId", cid, "item", it));
     }
 

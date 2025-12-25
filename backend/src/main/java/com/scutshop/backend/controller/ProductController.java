@@ -15,9 +15,11 @@ import java.util.Map;
 @RequestMapping("/api")
 public class ProductController {
     private final ProductService productService;
+    private final com.scutshop.backend.service.UserService userService;
 
-    public ProductController(ProductService productService) {
+    public ProductController(ProductService productService, com.scutshop.backend.service.UserService userService) {
         this.productService = productService;
+        this.userService = userService;
     }
 
     @GetMapping("/products")
@@ -36,10 +38,20 @@ public class ProductController {
     }
 
     @GetMapping("/products/{id}")
-    public ResponseEntity<?> get(@PathVariable("id") Long id) {
+    public ResponseEntity<?> get(@PathVariable("id") Long id,
+            org.springframework.security.core.Authentication authentication) {
         Product p = productService.findById(id);
         if (p == null)
             return ResponseEntity.notFound().build();
+
+        // Log browsing if user is authenticated
+        if (authentication != null && authentication.isAuthenticated()) {
+            var u = userService.findByUsername(authentication.getName());
+            if (u != null) {
+                userService.logAction(u.getId(), "BROWSE_PRODUCT",
+                        "Product: " + p.getName() + " (ID: " + p.getId() + ")");
+            }
+        }
         return ResponseEntity.ok(p);
     }
 
