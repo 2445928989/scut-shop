@@ -18,6 +18,7 @@ const routes = [
     { path: '/cart', component: Cart },
     { path: '/orders', component: Orders },
     { path: '/admin/products', component: AdminProducts }
+]
 const router = createRouter({ history: createWebHistory(), routes })
 
 // Prevent authenticated users from visiting login/register pages
