@@ -20,6 +20,11 @@
     <el-main>
       <router-view />
     </el-main>
+    <el-footer class="app-footer">
+      <div class="footer-content">
+        <p>网络工程 202330451741 王思哲</p>
+      </div>
+    </el-footer>
   </el-container>
 </template>
 

@@ -287,3 +287,18 @@ body {
         height: 140px
     }
 }
+
+/* Footer styles */
+.app-footer {
+    background: #f9fafb;
+    border-top: 1px solid #e5e7eb;
+    padding: 24px 0;
+    color: var(--muted);
+    text-align: center;
+}
+
+.footer-content p {
+    margin: 0;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+}
