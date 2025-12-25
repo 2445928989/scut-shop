@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { h } from 'vue'
 import Products from '../pages/Products.vue'
 import ProductDetail from '../pages/ProductDetail.vue'
 import Login from '../pages/Login.vue'
@@ -17,7 +18,15 @@ const routes = [
     { path: '/activate', component: Activate },
     { path: '/cart', component: Cart },
     { path: '/orders', component: Orders },
-    { path: '/admin/products', component: AdminProducts }
+    { path: '/admin/products', component: AdminProducts },
+    {
+        path: '/:pathMatch(.*)*',
+        component: {
+            render() {
+                return h('div', { style: 'padding:20px;color:red' }, '路由未匹配: ' + window.location.pathname)
+            }
+        }
+    }
 ]
 
 const router = createRouter({ history: createWebHistory(), routes })

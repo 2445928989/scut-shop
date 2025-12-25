@@ -75,6 +75,11 @@ public class CartService {
     }
 
     @Transactional
+    public CartItem getItemById(Long itemId) {
+        return cartMapper.selectItemById(itemId);
+    }
+
+    @Transactional
     public void updateItemQuantity(Long itemId, int quantity) {
         if (quantity <= 0)
             throw new IllegalArgumentException("invalid_quantity");

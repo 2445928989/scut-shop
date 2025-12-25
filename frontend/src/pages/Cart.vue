@@ -207,25 +207,35 @@ async function fetchCart() {
 
 async function updateQuantity(productId: number, quantity: number) {
   const item = items.value.find(i => i.productId === productId)
-  if (!item || !item.id) return
+  if (!item) return
 
-  try {
-    await api.put(`/api/cart/items/${item.id}`, { quantity })
+  // If we have a server-side item id, update on server
+  if (item.id) {
+    try {
+      await api.put(`/api/cart/items/${item.id}`, { quantity })
+      cart.updateQuantity(productId, quantity)
+    } catch (e) {
+      ElMessage.error('更新数量失败')
+    }
+  } else {
+    // Fallback for local-only items (though they should have IDs if fetched from /api/cart)
     cart.updateQuantity(productId, quantity)
-  } catch (e) {
-    ElMessage.error('更新数量失败')
   }
 }
 
 async function removeItem(productId: number) {
   const item = items.value.find(i => i.productId === productId)
-  if (!item || !item.id) return
+  if (!item) return
 
   try {
     await ElMessageBox.confirm('确定要从购物车中移除该商品吗？', '提示', {
       type: 'warning'
     })
-    await api.delete(`/api/cart/items/${item.id}`)
+    
+    if (item.id) {
+      await api.delete(`/api/cart/items/${item.id}`)
+    }
+    
     cart.removeItem(productId)
     ElMessage.success('已移除商品')
   } catch (e) {
