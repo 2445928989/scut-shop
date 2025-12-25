@@ -71,18 +71,12 @@ public class OrderController {
 
     @PutMapping("/admin/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> updateStatus(@PathVariable Long id, @RequestBody Map<String, Object> body) {
-        Object statusObj = body.get("status");
-        Object paymentStatusObj = body.get("paymentStatus");
-
-        if (statusObj == null || paymentStatusObj == null) {
+    public ResponseEntity<?> updateStatus(@PathVariable Long id,
+            @RequestBody com.scutshop.backend.dto.UpdateOrderStatusRequest req) {
+        if (req.getStatus() == null || req.getPaymentStatus() == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "missing_fields"));
         }
-
-        Integer status = Integer.valueOf(statusObj.toString());
-        Integer paymentStatus = Integer.valueOf(paymentStatusObj.toString());
-
-        orderService.updateStatus(id, status, paymentStatus);
+        orderService.updateStatus(id, req.getStatus(), req.getPaymentStatus());
         return ResponseEntity.ok(Map.of("status", "updated"));
     }
 }

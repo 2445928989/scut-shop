@@ -34,7 +34,7 @@ public interface OrderMapper {
     @Select("SELECT COUNT(1) FROM `order`")
     int countAll();
 
-    @Update("UPDATE `order` SET status = #{status}, payment_status = #{paymentStatus}, updated_at = CURRENT_TIMESTAMP WHERE id = #{id}")
+    @Update("UPDATE `order` SET status = #{status}, payment_status = #{paymentStatus} WHERE id = #{id}")
     int updateOrderStatus(@Param("id") Long id, @Param("status") Integer status,
             @Param("paymentStatus") Integer paymentStatus);
 }
