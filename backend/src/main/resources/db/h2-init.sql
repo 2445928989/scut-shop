@@ -55,7 +55,7 @@ VALUES (
     '搭载 A17 Pro 芯片，首款采用航空级钛金属设计的 iPhone，配备 5 倍光学变焦潜望式长焦镜头，支持 USB-C 接口（USB 3 速度）。',
     8999.00,
     100,
-    'https://store.storeimages.cdn-apple.com/8756/as-images.apple.com/is/iphone-15-pro-finish-select-202309-6-7inch-naturaltitanium?wid=512&fmt=p-jpg',
+    '/api/uploads/iphone.png',
     1
   ),
   (
@@ -64,7 +64,7 @@ VALUES (
     '徕卡全明星四摄，一英寸无级可变光圈主摄，骁龙 8 Gen 3 处理器，2K 旗舰高刷屏，支持双向卫星通信。',
     6499.00,
     80,
-    'https://i01.appmifile.com/v1/MI_CHOT_WHITE_BAK/pms_1708584496.44563456.png',
+    '/api/uploads/xiaomi.webp',
     1
   ),
   (
@@ -73,7 +73,7 @@ VALUES (
     '自研麒麟 9000S 芯片，支持卫星通话，超可靠玄武架构，第二代昆仑玻璃，全焦段超清影像。',
     6999.00,
     50,
-    'https://www.vmallres.com/res/product/600/428/10086726905031/428_10086726905031_1693294000000.png',
+    '/api/uploads/huawei.jpg',
     1
   ),
   (
@@ -82,7 +82,7 @@ VALUES (
     '全新 M3 芯片，性能强劲且功耗极低，无风扇静音设计，Liquid 视网膜显示屏，支持两台外接显示器。',
     10499.00,
     30,
-    'https://store.storeimages.cdn-apple.com/8756/as-images.apple.com/is/macbook-air-midnight-select-202402?wid=512&fmt=p-jpg',
+    '/api/uploads/mac.webp',
     1
   ),
   (
@@ -91,7 +91,7 @@ VALUES (
     '专业电竞本，霜刃 Pro 散热系统 6.0，140W 满功耗显卡释放，支持显卡直连，高色域电竞屏。',
     9999.00,
     40,
-    'https://picsum.photos/seed/y9000p/400/400',
+    '/api/uploads/legion.jpg',
     1
   ),
   (
@@ -100,7 +100,7 @@ VALUES (
     '轻约 1.19kg，薄约 13.9mm，搭载全新酷睿 Ultra 处理器，AI 性能大幅提升，75Wh 大容量电池。',
     7499.00,
     60,
-    'https://picsum.photos/seed/zenbook/400/400',
+    '/api/uploads/asus.jpg',
     1
   ),
   (
@@ -109,7 +109,7 @@ VALUES (
     '双芯片驱动，8 麦克风降噪系统，支持 LDAC 高音质传输，30 小时长续航，佩戴感全面升级。',
     2299.00,
     150,
-    'https://www.sony.com.cn/content/dam/sony-portal/products/headphone/wh-1000xm5/product-image/black/01.png',
+    '/api/uploads/sony.jpeg',
     1
   ),
   (
@@ -118,7 +118,7 @@ VALUES (
     'H2 芯片带来更智能的降噪性能和三维空间音效，主动降噪效果提升最高可达 2 倍，支持通透模式。',
     1899.00,
     200,
-    'https://store.storeimages.cdn-apple.com/8756/as-images.apple.com/is/MTJV3?wid=512&fmt=p-jpg',
+    '/api/uploads/airpods.png',
     1
   ),
   (
@@ -127,7 +127,7 @@ VALUES (
     'Hi-Res 双金标认证，-43dB 深度主动降噪，50 小时超长续航，支持游戏低延迟模式。',
     329.00,
     300,
-    'https://picsum.photos/seed/edifier/400/400',
+    '/api/uploads/edifier.avif',
     1
   ),
   (
@@ -136,7 +136,7 @@ VALUES (
     '精选全球 6 种坚果 3 种果干，干湿分离包装，科学配比，营养均衡，老少皆宜。',
     139.00,
     1000,
-    'https://picsum.photos/seed/nuts/400/400',
+    '/api/uploads/three_squirrels.avif',
     1
   ),
   (
@@ -145,7 +145,7 @@ VALUES (
     '精选优质土豆，切片均匀，口感薄脆，经典原味，追剧必备零食。',
     35.90,
     2000,
-    'https://picsum.photos/seed/lays/400/400',
+    '/api/uploads/lays.png',
     1
   ),
   (
@@ -154,7 +154,7 @@ VALUES (
     '精选猪后腿肉，传统工艺烘烤，肉质紧实，咸甜适口，独立小包装，方便携带。',
     49.90,
     800,
-    'https://picsum.photos/seed/pork/400/400',
+    '/api/uploads/bestore.webp',
     1
   ),
   (
@@ -163,7 +163,7 @@ VALUES (
     '精选进口优质原生木浆，长短纤维紧密结合，湿水不易破，不含可迁移性荧光增白剂。',
     59.90,
     1500,
-    'https://picsum.photos/seed/tissue/400/400',
+    '/api/uploads/vinda.jpg',
     1
   ),
   (
@@ -172,7 +172,7 @@ VALUES (
     '深层洁净，亮白增艳，低泡易漂，温和不伤手，持久留香，适合各种衣物。',
     89.00,
     1200,
-    'https://picsum.photos/seed/detergent/400/400',
+    '/api/uploads/bluemoon.png',
     1
   ),
   (
@@ -181,9 +181,46 @@ VALUES (
     '1500W 快速沸腾，双层防烫设计，优质温控器，自动断电保护，大口径易清洗。',
     99.00,
     500,
-    'https://picsum.photos/seed/kettle/400/400',
+    '/api/uploads/supor.jpg',
     1
   );
+,
+(
+  '良品铺子 猪肉脯 靖江风味 500g 经典原味',
+  'JD-100003456789',
+  '精选猪后腿肉，传统工艺烘烤，肉质紧实，咸甜适口，独立小包装，方便携带。',
+  49.90,
+  800,
+  'https://picsum.photos/seed/pork/400/400',
+  1
+),
+(
+  '维达 (Vinda) 抽纸 超韧3层100抽*24包 (整箱销售)',
+  'JD-100004567890',
+  '精选进口优质原生木浆，长短纤维紧密结合，湿水不易破，不含可迁移性荧光增白剂。',
+  59.90,
+  1500,
+  'https://picsum.photos/seed/tissue/400/400',
+  1
+),
+(
+  '蓝月亮 洗衣液 亮白增艳 3kg*2瓶 组合装',
+  'JD-100005678901',
+  '深层洁净，亮白增艳，低泡易漂，温和不伤手，持久留香，适合各种衣物。',
+  89.00,
+  1200,
+  'https://picsum.photos/seed/detergent/400/400',
+  1
+),
+(
+  '苏泊尔 (SUPOR) 电水壶 1.5L 双层防烫 304不锈钢',
+  'JD-100006789012',
+  '1500W 快速沸腾，双层防烫设计，优质温控器，自动断电保护，大口径易清洗。',
+  99.00,
+  500,
+  'https://picsum.photos/seed/kettle/400/400',
+  1
+);
 -- product_audit for h2/init
 CREATE TABLE IF NOT EXISTS "product_audit" (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,

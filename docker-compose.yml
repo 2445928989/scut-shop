@@ -15,23 +15,23 @@ services:
       - db_data:/var/lib/mysql
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
       - ./db/init_admin.sh:/docker-entrypoint-initdb.d/init_admin.sh:ro
-    ports:
-      - "3307:3306" # changed host port to 3307 because host 3306 is in use
+    # ports:
+    #   - "3307:3306" # changed host port to 3307 because host 3306 is in use
     restart: unless-stopped
 
   redis:
     image: redis:7
     container_name: scut_redis
-    ports:
-      - "6379:6379"
+    # ports:
+    #   - "6379:6379"
     restart: unless-stopped
 
   mailhog:
     image: mailhog/mailhog
     container_name: scut_mailhog
-    ports:
-      - "1025:1025" # SMTP
-      - "8025:8025" # Web UI
+    # ports:
+    #   - "1025:1025" # SMTP
+    #   - "8025:8025" # Web UI
     restart: unless-stopped
 
   adminer:
@@ -57,12 +57,14 @@ services:
       - PAYMENT_MOCK=${PAYMENT_MOCK}
       - MAIL_HOST=${MAIL_HOST}
       - MAIL_SMTP_PORT=${MAIL_SMTP_PORT}
-      - EMAIL_ACTIVATION_ENABLED=true
-      - FRONTEND_BASE=http://localhost:3000
+      - EMAIL_ACTIVATION_ENABLED=${EMAIL_ACTIVATION_ENABLED}
+      - FRONTEND_BASE=${FRONTEND_BASE}
       - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=DEBUG
 
-    ports:
-      - "8081:8080"
+    # ports:
+    #   - "8081:8080"
+    volumes:
+      - ./uploads:/app/uploads
     depends_on:
       - db
       - redis

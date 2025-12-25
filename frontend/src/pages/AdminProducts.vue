@@ -168,8 +168,17 @@
             </el-col>
             <el-col :span="12">
               <el-form-item label="商品图片">
-                <div style="margin-bottom: 8px;">
-                  <el-input v-model="form.imageUrl" placeholder="请输入图片URL" />
+                <div style="margin-bottom: 8px; display: flex; gap: 8px;">
+                  <el-input v-model="form.imageUrl" placeholder="请输入图片URL或上传" />
+                  <el-upload
+                    action="/api/upload/image"
+                    :headers="uploadHeaders"
+                    :show-file-list="false"
+                    :on-success="handleUploadSuccess"
+                    :before-upload="beforeUpload"
+                  >
+                    <el-button type="primary">上传</el-button>
+                  </el-upload>
                 </div>
                 <div v-if="form.imageUrl" style="width: 100%; height: 200px; border: 1px solid #dcdfe6; border-radius: 4px; overflow: hidden;">
                   <img :src="form.imageUrl" alt="商品图片预览" style="width: 100%; height: 100%; object-fit: contain;" />
@@ -237,6 +246,33 @@ const editId = ref<number | null>(null)
 const quickEditId = ref<number | null>(null)
 const form = ref<any>({ name: '', sku: '', price: 0, stock: 0, imageUrl: '', description: '', status: 1 })
 const quickEditForm = ref<any>({ name: '', price: 0, stock: 0, status: 1 })
+
+// 上传相关
+const uploadHeaders = computed(() => ({
+  Authorization: `Bearer ${auth.accessToken}`
+}))
+
+function beforeUpload(file: any) {
+  const isJPGorPNG = file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/webp'
+  const isLt2M = file.size / 1024 / 1024 < 2
+
+  if (!isJPGorPNG) {
+    ElMessage.error('上传图片只能是 JPG/PNG/WebP 格式!')
+  }
+  if (!isLt2M) {
+    ElMessage.error('上传图片大小不能超过 2MB!')
+  }
+  return isJPGorPNG && isLt2M
+}
+
+function handleUploadSuccess(res: any) {
+  if (res && res.url) {
+    form.value.imageUrl = res.url
+    ElMessage.success('图片上传成功')
+  } else {
+    ElMessage.error('图片上传失败')
+  }
+}
 
 // 搜索相关
 const searchKeyword = ref('')
