@@ -2,22 +2,8 @@ import axios from 'axios'
 
 // Use relative API base by default so browser requests go through the nginx proxy (/api)
 const API_BASE = import.meta.env.VITE_API_BASE || ''
-console.log('API_BASE (client):', API_BASE)
 const instance = axios.create({
     baseURL: API_BASE
-})
-
-// Debugging: log requests and responses in dev
-instance.interceptors.request.use((config) => {
-    console.debug('[API] Request:', config.method, config.baseURL ? config.baseURL + config.url : config.url, config.params || config.data)
-    return config
-})
-instance.interceptors.response.use((r) => {
-    console.debug('[API] Response:', r.config ? (r.config.baseURL ? r.config.baseURL + r.config.url : r.config.url) : '', r.status, r.data)
-    return r
-}, (err) => {
-    console.error('[API] Response error:', err && err.response ? { status: err.response.status, data: err.response.data } : err)
-    return Promise.reject(err)
 })
 
 instance.interceptors.request.use((config) => {

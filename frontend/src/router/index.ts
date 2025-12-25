@@ -34,7 +34,8 @@ router.beforeEach(async (to, from, next) => {
         if (auth.accessToken && (!auth.authorities || auth.authorities.length === 0)) {
             try { await auth.fetchMe() } catch (e) { /* ignore */ }
         }
-        if (!auth.isAdmin) return next('/')
+        // 如果用户没有权限，也允许访问（让页面组件自己处理显示登录提示）
+        // 而不是立即跳转，这样登出后用户可以留在当前页面
     }
     next()
 })
