@@ -294,6 +294,7 @@ async function confirmPayment() {
     localStorage.removeItem('cartId')
     showPaymentDialog.value = false
     ElMessage.success('支付成功，订单已创建！')
+    router.push('/orders')
   } catch (e: any) {
     console.error('Checkout failed:', e)
     const errorData = e.response?.data

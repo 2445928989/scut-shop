@@ -3,6 +3,7 @@ import Products from '../pages/Products.vue'
 import ProductDetail from '../pages/ProductDetail.vue'
 import Login from '../pages/Login.vue'
 import Cart from '../pages/Cart.vue'
+import Orders from '../pages/Orders.vue'
 import Register from '../pages/Register.vue'
 import Activate from '../pages/Activate.vue'
 import AdminProducts from '../pages/AdminProducts.vue'
@@ -15,6 +16,7 @@ const routes = [
     { path: '/register', component: Register },
     { path: '/activate', component: Activate },
     { path: '/cart', component: Cart },
+    { path: '/orders', component: Orders },
     { path: '/admin/products', component: AdminProducts }
 ]
 

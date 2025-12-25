@@ -11,6 +11,7 @@
           <router-link to="/login">登录</router-link>
         </template>
         <template v-else>
+          <router-link to="/orders">我的订单</router-link>
           <router-link v-if="isAdmin" to="/admin/products">管理</router-link>
           <span class="username-pill">{{username}}</span>
           <el-button type="text" @click="logout">登出</el-button>

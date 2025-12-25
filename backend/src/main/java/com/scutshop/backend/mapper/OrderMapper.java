@@ -19,6 +19,9 @@ public interface OrderMapper {
     @Select("SELECT * FROM `order` WHERE id = #{id} LIMIT 1")
     Order selectById(@Param("id") Long id);
 
+    @Select("SELECT * FROM `order_item` WHERE order_id = #{orderId}")
+    List<OrderItem> selectItemsByOrderId(@Param("orderId") Long orderId);
+
     @Select("SELECT * FROM `order` WHERE user_id = #{userId} ORDER BY created_at DESC LIMIT #{limit} OFFSET #{offset}")
     List<Order> selectByUserId(@Param("userId") Long userId, @Param("limit") int limit, @Param("offset") int offset);
 

@@ -12,6 +12,7 @@ public class Order {
     private Integer status; // 0=CREATED,1=PAID,2=SHIPPED,3=DELIVERED,4=CANCELLED,5=REFUNDED
     private Integer paymentStatus; // 0=UNPAID,1=PAID,2=REFUNDED
     private String remark;
+    private java.util.List<OrderItem> items;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -47,11 +48,11 @@ public class Order {
         this.shippingAddressId = shippingAddressId;
     }
 
-    public BigDecimal getTotalAmount() {
+    public java.math.BigDecimal getTotalAmount() {
         return totalAmount;
     }
 
-    public void setTotalAmount(BigDecimal totalAmount) {
+    public void setTotalAmount(java.math.BigDecimal totalAmount) {
         this.totalAmount = totalAmount;
     }
 
@@ -77,6 +78,14 @@ public class Order {
 
     public void setRemark(String remark) {
         this.remark = remark;
+    }
+
+    public java.util.List<OrderItem> getItems() {
+        return items;
+    }
+
+    public void setItems(java.util.List<OrderItem> items) {
+        this.items = items;
     }
 
     public LocalDateTime getCreatedAt() {

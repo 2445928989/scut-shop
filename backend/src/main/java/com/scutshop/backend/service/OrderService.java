@@ -94,13 +94,21 @@ public class OrderService {
     }
 
     public Order getById(Long id) {
-        return orderMapper.selectById(id);
+        Order o = orderMapper.selectById(id);
+        if (o != null) {
+            o.setItems(orderMapper.selectItemsByOrderId(o.getId()));
+        }
+        return o;
     }
 
     public List<Order> listByUser(Long userId, int page, int size) {
         int limit = size;
         int offset = (Math.max(1, page) - 1) * size;
-        return orderMapper.selectByUserId(userId, limit, offset);
+        List<Order> orders = orderMapper.selectByUserId(userId, limit, offset);
+        for (Order o : orders) {
+            o.setItems(orderMapper.selectItemsByOrderId(o.getId()));
+        }
+        return orders;
     }
 
     public int countByUser(Long userId) {
