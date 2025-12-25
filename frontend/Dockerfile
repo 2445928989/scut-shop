@@ -5,6 +5,7 @@ COPY package.json package-lock.json* ./
 COPY . .
 ARG VITE_API_BASE=/api
 ENV VITE_API_BASE=${VITE_API_BASE}
+RUN npm config set registry https://registry.npmmirror.com
 RUN npm ci --silent
 RUN npm run build
 
