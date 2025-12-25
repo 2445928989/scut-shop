@@ -71,12 +71,17 @@ public class OrderController {
 
     @PutMapping("/admin/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> updateStatus(@PathVariable Long id, @RequestBody Map<String, Integer> body) {
-        Integer status = body.get("status");
-        Integer paymentStatus = body.get("paymentStatus");
-        if (status == null || paymentStatus == null) {
+    public ResponseEntity<?> updateStatus(@PathVariable Long id, @RequestBody Map<String, Object> body) {
+        Object statusObj = body.get("status");
+        Object paymentStatusObj = body.get("paymentStatus");
+
+        if (statusObj == null || paymentStatusObj == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "missing_fields"));
         }
+
+        Integer status = Integer.valueOf(statusObj.toString());
+        Integer paymentStatus = Integer.valueOf(paymentStatusObj.toString());
+
         orderService.updateStatus(id, status, paymentStatus);
         return ResponseEntity.ok(Map.of("status", "updated"));
     }

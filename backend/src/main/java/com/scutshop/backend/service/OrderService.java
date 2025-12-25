@@ -129,7 +129,7 @@ public class OrderService {
     }
 
     @Transactional
-    public void updateStatus(Long orderId, int status, int paymentStatus) {
+    public void updateStatus(Long orderId, Integer status, Integer paymentStatus) {
         orderMapper.updateOrderStatus(orderId, status, paymentStatus);
     }
 }
