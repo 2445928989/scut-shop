@@ -22,7 +22,7 @@
 import { reactive } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -32,8 +32,16 @@ async function onSubmit(){
   try{
     const r = await auth.register(form.username, form.email, form.password)
     if (r && r.activation === 'sent') {
-      ElMessage.success('已发送激活邮件，请检查邮箱并完成激活后登录')
-      router.push('/')
+      await ElMessageBox.alert(
+        '激活邮件已发送至您的邮箱，请在 24 小时内点击邮件中的链接完成激活。激活后即可登录商城。',
+        '注册成功',
+        {
+          confirmButtonText: '确定',
+          type: 'success',
+          center: true
+        }
+      )
+      router.push('/login')
       return
     }
     if (r && r.error) {
