@@ -114,4 +114,22 @@ public class OrderService {
     public int countByUser(Long userId) {
         return orderMapper.countByUserId(userId);
     }
+
+    public List<Order> listAll(int page, int size) {
+        int offset = (page - 1) * size;
+        List<Order> orders = orderMapper.selectAll(size, offset);
+        for (Order o : orders) {
+            o.setItems(orderMapper.selectItemsByOrderId(o.getId()));
+        }
+        return orders;
+    }
+
+    public int countAll() {
+        return orderMapper.countAll();
+    }
+
+    @Transactional
+    public void updateStatus(Long orderId, int status, int paymentStatus) {
+        orderMapper.updateOrderStatus(orderId, status, paymentStatus);
+    }
 }

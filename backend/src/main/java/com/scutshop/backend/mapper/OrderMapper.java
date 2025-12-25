@@ -28,6 +28,12 @@ public interface OrderMapper {
     @Select("SELECT COUNT(1) FROM `order` WHERE user_id = #{userId}")
     int countByUserId(@Param("userId") Long userId);
 
+    @Select("SELECT * FROM `order` ORDER BY created_at DESC LIMIT #{limit} OFFSET #{offset}")
+    List<Order> selectAll(@Param("limit") int limit, @Param("offset") int offset);
+
+    @Select("SELECT COUNT(1) FROM `order`")
+    int countAll();
+
     @Update("UPDATE `order` SET status = #{status}, payment_status = #{paymentStatus}, updated_at = CURRENT_TIMESTAMP WHERE id = #{id}")
     int updateOrderStatus(@Param("id") Long id, @Param("status") int status, @Param("paymentStatus") int paymentStatus);
 }

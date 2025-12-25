@@ -7,6 +7,7 @@ import Orders from '../pages/Orders.vue'
 import Register from '../pages/Register.vue'
 import Activate from '../pages/Activate.vue'
 import AdminProducts from '../pages/AdminProducts.vue'
+import AdminOrders from '../pages/AdminOrders.vue'
 import { useAuthStore } from '../stores/auth'
 
 const routes = [
@@ -17,7 +18,8 @@ const routes = [
     { path: '/activate', component: Activate },
     { path: '/cart', component: Cart },
     { path: '/orders', component: Orders },
-    { path: '/admin/products', component: AdminProducts }
+    { path: '/admin/products', component: AdminProducts },
+    { path: '/admin/orders', component: AdminOrders }
 ]
 const router = createRouter({ history: createWebHistory(), routes })
 
