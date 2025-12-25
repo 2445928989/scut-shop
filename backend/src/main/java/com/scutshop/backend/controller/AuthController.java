@@ -67,6 +67,9 @@ public class AuthController {
                 userService.setActivation(created.getId(), token, expires);
                 String frontendBase = java.util.Optional.ofNullable(System.getenv("FRONTEND_BASE"))
                         .orElse("http://localhost:3000");
+                if (frontendBase.endsWith("/")) {
+                    frontendBase = frontendBase.substring(0, frontendBase.length() - 1);
+                }
                 String link = frontendBase + "/activate?token=" + token;
                 emailService.sendActivationEmail(email, link);
                 return ResponseEntity.ok(Map.of("status", "registered", "activation", "sent"));

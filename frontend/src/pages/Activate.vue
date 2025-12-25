@@ -1,10 +1,5 @@
 <template>
   <div class="activate-container">
-    <!-- 强制显示的测试文本，用于确认组件是否挂载 -->
-    <div class="debug-marker" style="color: #909399; font-size: 12px; margin-bottom: 10px;">
-      [系统消息：激活组件已挂载]
-    </div>
-    
     <el-card class="activate-card">
       <div v-if="loading" class="loading-state">
         <p>正在验证激活码，请稍候...</p>
@@ -41,7 +36,6 @@ const loading = ref(true)
 const message = ref('')
 
 onMounted(async () => {
-  console.log('Activate component mounted, query:', route.query)
   // 使用 route.query 获取参数，更符合 Vue Router 规范
   const token = route.query.token as string
   

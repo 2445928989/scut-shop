@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { h } from 'vue'
 import Products from '../pages/Products.vue'
 import ProductDetail from '../pages/ProductDetail.vue'
 import Login from '../pages/Login.vue'
@@ -18,21 +17,16 @@ const routes = [
     { path: '/activate', component: Activate },
     { path: '/cart', component: Cart },
     { path: '/orders', component: Orders },
-    { path: '/admin/products', component: AdminProducts },
-    {
-        path: '/:pathMatch(.*)*',
-        component: {
-            render() {
-                return h('div', { style: 'padding:20px;color:red' }, '路由未匹配: ' + window.location.pathname)
-            }
-        }
-    }
-]
-
+    { path: '/admin/products', component: AdminProducts }
 const router = createRouter({ history: createWebHistory(), routes })
 
 // Prevent authenticated users from visiting login/register pages
 router.beforeEach(async (to, from, next) => {
+    // 修复双斜杠问题 (例如 //activate -> /activate)
+    if (to.path.startsWith('//')) {
+        return next(to.path.replace(/\/+/g, '/'))
+    }
+
     const isAuth = !!localStorage.getItem('accessToken')
     // if trying to visit login/register while authenticated, redirect home
     if ((to.path === '/login' || to.path === '/register') && isAuth) {
