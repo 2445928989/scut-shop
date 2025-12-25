@@ -30,8 +30,6 @@ RUN if [ "${SKIP_REPACKAGE}" = "true" ]; then \
 # Run stage
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
-# Install curl for health checks and debugging
-RUN apk add --no-cache curl
 # Re-declare ARG so it's available in this stage (prevents empty expansion causing directory copy)
 ARG APP_JAR=backend-0.1.0.jar
 # Allow overriding artifact name with build-arg APP_JAR

@@ -70,7 +70,7 @@ services:
       - redis
       - mailhog
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8080/api/health" ]
+      test: [ "CMD", "wget", "-q", "-O-", "http://localhost:8080/api/health" ]
       interval: 10s
       timeout: 5s
       retries: 12
