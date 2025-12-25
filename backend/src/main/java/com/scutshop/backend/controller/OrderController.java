@@ -17,6 +17,27 @@ public class OrderController {
     private final OrderService orderService;
     private final UserService userService;
 
+    public static class UpdateStatusRequest {
+        private Integer status;
+        private Integer paymentStatus;
+
+        public Integer getStatus() {
+            return status;
+        }
+
+        public void setStatus(Integer status) {
+            this.status = status;
+        }
+
+        public Integer getPaymentStatus() {
+            return paymentStatus;
+        }
+
+        public void setPaymentStatus(Integer paymentStatus) {
+            this.paymentStatus = paymentStatus;
+        }
+    }
+
     public OrderController(OrderService orderService, UserService userService) {
         this.orderService = orderService;
         this.userService = userService;
@@ -72,11 +93,27 @@ public class OrderController {
     @PutMapping("/admin/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateStatus(@PathVariable Long id,
-            @RequestBody com.scutshop.backend.dto.UpdateOrderStatusRequest req) {
-        if (req.getStatus() == null || req.getPaymentStatus() == null) {
-            return ResponseEntity.badRequest().body(Map.of("error", "missing_fields"));
+            @RequestBody UpdateStatusRequest req) {
+        try {
+            System.out.println("Updating order status: id=" + id + ", status=" + req.getStatus() + ", paymentStatus="
+                    + req.getPaymentStatus());
+            if (req.getStatus() == null || req.getPaymentStatus() == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "missing_fields"));
+            }
+            System.out.println("Fetching order with id: " + id);
+            Order o = orderService.getById(id);
+            if (o == null) {
+                System.out.println("Order not found: " + id);
+                return ResponseEntity.notFound().build();
+            }
+            System.out.println("Order found: " + o.getOrderNo());
+            orderService.updateStatus(id, req.getStatus(), req.getPaymentStatus());
+            return ResponseEntity.ok(Map.of("status", "updated"));
+        } catch (Exception e) {
+            System.err.println("Error updating order status:");
+            e.printStackTrace();
+            return ResponseEntity.status(500)
+                    .body(Map.of("error", e.getMessage() != null ? e.getMessage() : e.toString()));
         }
-        orderService.updateStatus(id, req.getStatus(), req.getPaymentStatus());
-        return ResponseEntity.ok(Map.of("status", "updated"));
     }
 }

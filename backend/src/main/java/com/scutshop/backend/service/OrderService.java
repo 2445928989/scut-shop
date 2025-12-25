@@ -130,6 +130,9 @@ public class OrderService {
 
     @Transactional
     public void updateStatus(Long orderId, Integer status, Integer paymentStatus) {
+        System.out.println(
+                "OrderService.updateStatus: id=" + orderId + ", status=" + status + ", paymentStatus=" + paymentStatus);
         orderMapper.updateOrderStatus(orderId, status, paymentStatus);
+        System.out.println("OrderService.updateStatus: success");
     }
 }
