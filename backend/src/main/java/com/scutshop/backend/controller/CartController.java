@@ -64,7 +64,7 @@ public class CartController {
     }
 
     @PutMapping("/items/{id}")
-    public ResponseEntity<?> updateItem(@PathVariable Long id,
+    public ResponseEntity<?> updateItem(@PathVariable("id") Long id,
             @RequestHeader(value = "X-Cart-Id", required = false) Long cartId,
             Authentication authentication,
             @RequestBody UpdateCartItemRequest req) {
@@ -90,7 +90,7 @@ public class CartController {
     }
 
     @DeleteMapping("/items/{id}")
-    public ResponseEntity<?> deleteItem(@PathVariable Long id,
+    public ResponseEntity<?> deleteItem(@PathVariable("id") Long id,
             @RequestHeader(value = "X-Cart-Id", required = false) Long cartId,
             Authentication authentication) {
         CartItem it = cartService.getItemById(id);

@@ -57,7 +57,7 @@ public class OrderController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> get(@PathVariable Long id, Authentication authentication) {
+    public ResponseEntity<?> get(@PathVariable("id") Long id, Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated())
             return ResponseEntity.status(401).build();
         var u = userService.findByUsername(authentication.getName());
@@ -92,7 +92,7 @@ public class OrderController {
 
     @PutMapping("/admin/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> updateStatus(@PathVariable Long id,
+    public ResponseEntity<?> updateStatus(@PathVariable("id") Long id,
             @RequestBody UpdateStatusRequest req) {
         try {
             System.out.println("Updating order status: id=" + id + ", status=" + req.getStatus() + ", paymentStatus="
