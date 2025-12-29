@@ -171,7 +171,7 @@
                 <div style="margin-bottom: 8px; display: flex; gap: 8px;">
                   <el-input v-model="form.imageUrl" placeholder="请输入图片URL或上传" />
                   <el-upload
-                    action="/api/upload/image"
+                    :action="uploadAction"
                     :headers="uploadHeaders"
                     :show-file-list="false"
                     :on-success="handleUploadSuccess"
@@ -248,11 +248,19 @@ const form = ref<any>({ name: '', sku: '', price: 0, stock: 0, imageUrl: '', des
 const quickEditForm = ref<any>({ name: '', price: 0, stock: 0, status: 1 })
 
 // 上传相关
+const uploadAction = computed(() => {
+  const base = import.meta.env.VITE_API_BASE || ''
+  return `${base}/api/upload/image`
+})
+
 const uploadHeaders = computed(() => ({
   Authorization: `Bearer ${auth.accessToken}`
 }))
 
 function beforeUpload(file: any) {
+  console.log('Starting upload to:', uploadAction.value)
+  console.log('Upload headers:', uploadHeaders.value)
+  
   const isJPGorPNG = file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/webp'
   const isLt2M = file.size / 1024 / 1024 < 2
 
@@ -262,6 +270,12 @@ function beforeUpload(file: any) {
   if (!isLt2M) {
     ElMessage.error('上传图片大小不能超过 2MB!')
   }
+  
+  if (!auth.accessToken) {
+    ElMessage.error('登录已过期，请重新登录')
+    return false
+  }
+  
   return isJPGorPNG && isLt2M
 }
 
