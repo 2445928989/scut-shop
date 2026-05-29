@@ -10,6 +10,11 @@ import AdminProducts from '../pages/AdminProducts.vue'
 import AdminOrders from '../pages/AdminOrders.vue'
 import AdminReports from '../pages/AdminReports.vue'
 import AdminUsers from '../pages/AdminUsers.vue'
+import Addresses from '../pages/Addresses.vue'
+import AdminSalesUsers from '../pages/AdminSalesUsers.vue'
+import SalesProducts from '../pages/SalesProducts.vue'
+import SalesOrders from '../pages/SalesOrders.vue'
+import Dashboard from '../pages/Dashboard.vue'
 import { useAuthStore } from '../stores/auth'
 
 const routes = [
@@ -20,10 +25,15 @@ const routes = [
     { path: '/activate', component: Activate },
     { path: '/cart', component: Cart },
     { path: '/orders', component: Orders },
+    { path: '/addresses', component: Addresses },
+    { path: '/sales/products', component: SalesProducts },
+    { path: '/sales/orders', component: SalesOrders },
     { path: '/admin/products', component: AdminProducts },
     { path: '/admin/orders', component: AdminOrders },
     { path: '/admin/reports', component: AdminReports },
-    { path: '/admin/users', component: AdminUsers }
+    { path: '/admin/users', component: AdminUsers },
+    { path: '/admin/sales', component: AdminSalesUsers },
+    { path: '/admin/dashboard', component: Dashboard }
 ]
 const router = createRouter({ history: createWebHistory(), routes })
 
@@ -42,12 +52,20 @@ router.beforeEach(async (to, from, next) => {
     // admin routes protection: require ROLE_ADMIN
     if (to.path.startsWith('/admin')) {
         const auth = useAuthStore()
-        // if token present but authorities not yet populated, fetch them (best-effort)
         if (auth.accessToken && (!auth.authorities || auth.authorities.length === 0)) {
             try { await auth.fetchMe() } catch (e) { /* ignore */ }
         }
-        // 如果用户没有权限，也允许访问（让页面组件自己处理显示登录提示）
-        // 而不是立即跳转，这样登出后用户可以留在当前页面
+    }
+    // sales routes protection
+    if (to.path.startsWith('/sales')) {
+        const auth = useAuthStore()
+        if (auth.accessToken && (!auth.authorities || auth.authorities.length === 0)) {
+            try { await auth.fetchMe() } catch (e) { /* ignore */ }
+        }
+    }
+    // addresses require auth
+    if (to.path.startsWith('/addresses') && !isAuth) {
+        return next('/login')
     }
     next()
 })

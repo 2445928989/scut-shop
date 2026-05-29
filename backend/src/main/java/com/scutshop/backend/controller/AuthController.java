@@ -2,7 +2,10 @@ package com.scutshop.backend.controller;
 
 import com.scutshop.backend.model.User;
 import com.scutshop.backend.security.JwtTokenProvider;
+import com.scutshop.backend.service.LoginLogService;
 import com.scutshop.backend.service.UserService;
+import com.scutshop.backend.util.IpUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,16 +20,19 @@ public class AuthController {
 
     private final com.scutshop.backend.service.RefreshTokenService refreshTokenService;
     private final com.scutshop.backend.service.EmailService emailService;
+    private final LoginLogService loginLogService;
 
     public AuthController(UserService userService, JwtTokenProvider tokenProvider,
             org.springframework.security.authentication.AuthenticationManager authenticationManager,
             com.scutshop.backend.service.RefreshTokenService refreshTokenService,
-            com.scutshop.backend.service.EmailService emailService) {
+            com.scutshop.backend.service.EmailService emailService,
+            LoginLogService loginLogService) {
         this.userService = userService;
         this.tokenProvider = tokenProvider;
         this.authenticationManager = authenticationManager;
         this.refreshTokenService = refreshTokenService;
         this.emailService = emailService;
+        this.loginLogService = loginLogService;
     }
 
     @PostMapping("/register")
@@ -82,7 +88,8 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody com.scutshop.backend.dto.AuthRequest request) {
+    public ResponseEntity<?> login(@RequestBody com.scutshop.backend.dto.AuthRequest request,
+            HttpServletRequest httpRequest) {
         try {
             var authToken = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
                     request.getUsername(), request.getPassword());
@@ -95,6 +102,13 @@ public class AuthController {
             // create refresh token
             Long userId = userService.findByUsername(request.getUsername()).getId();
             String refresh = refreshTokenService.createRefreshToken(userId);
+
+            // record login log
+            try {
+                String ip = IpUtils.getClientIp(httpRequest);
+                String ua = httpRequest.getHeader("User-Agent");
+                loginLogService.record(userId, request.getUsername(), ip, ua);
+            } catch (Exception e) { /* ignore */ }
 
             return ResponseEntity.ok(new com.scutshop.backend.dto.AuthResponse(token, expires, refresh));
         } catch (org.springframework.security.core.AuthenticationException ex) {

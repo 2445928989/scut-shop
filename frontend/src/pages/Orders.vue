@@ -24,6 +24,10 @@
         </div>
         
         <div class="order-footer">
+          <div class="order-actions" v-if="order.status===0 || order.status===2">
+            <el-button v-if="order.status===0" type="danger" size="small" @click="cancelOrder(order.id)">取消订单</el-button>
+            <el-button v-if="order.status===2" type="success" size="small" @click="confirmOrder(order.id)">确认收货</el-button>
+          </div>
           <div class="total-amount">
             总计：<span class="amount">¥{{ order.totalAmount }}</span>
           </div>
@@ -46,7 +50,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import api from '../api'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 const orders = ref<any[]>([])
 const total = ref(0)
@@ -102,6 +106,24 @@ function getStatusType(status: number) {
     5: 'info'
   }
   return map[status] || ''
+}
+
+async function cancelOrder(id: number) {
+  try {
+    await ElMessageBox.confirm('确认取消该订单?', '提示', { type: 'warning' })
+    await api.post(`/api/orders/${id}/cancel`)
+    ElMessage.success('订单已取消')
+    fetchOrders()
+  } catch {}
+}
+
+async function confirmOrder(id: number) {
+  try {
+    await ElMessageBox.confirm('确认已收到商品?', '提示', { type: 'warning' })
+    await api.post(`/api/orders/${id}/confirm`)
+    ElMessage.success('已确认收货')
+    fetchOrders()
+  } catch {}
 }
 </script>
 

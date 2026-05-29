@@ -81,7 +81,7 @@
         <el-table-column prop="createdAt" label="时间" width="180">
           <template #default="{ row }">{{ formatDate(row.createdAt) }}</template>
         </el-table-column>
-      </el-table-column>
+      </el-table>
       <div class="pagination-container">
         <el-pagination
           v-model:current-page="userLogPage"

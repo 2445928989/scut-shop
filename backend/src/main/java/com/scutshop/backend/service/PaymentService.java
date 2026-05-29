@@ -57,7 +57,6 @@ public class PaymentService {
             // in real implementation, call external gateway
             p.setStatus(2);
         }
-        // persist is handled by insert only (no update implemented for payment table in
-        // mapper)
+        paymentMapper.updatePayment(p);
     }
 }

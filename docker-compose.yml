@@ -64,7 +64,7 @@ services:
     # ports:
     #   - "8081:8080"
     volumes:
-      - ./uploads:/app/uploads
+      - uploads_data:/app/uploads
     depends_on:
       - db
       - redis
@@ -92,3 +92,4 @@ services:
 
 volumes:
   db_data:
+  uploads_data:

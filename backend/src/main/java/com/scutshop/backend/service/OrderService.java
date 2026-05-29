@@ -139,6 +139,24 @@ public class OrderService {
         System.out.println("OrderService.updateStatus: success");
     }
 
+    @Transactional
+    public void cancelOrder(Long orderId, Long userId) {
+        Order o = orderMapper.selectById(orderId);
+        if (o == null) throw new IllegalArgumentException("order_not_found");
+        if (!o.getUserId().equals(userId)) throw new IllegalArgumentException("not_owner");
+        if (o.getStatus() != 0) throw new IllegalArgumentException("cannot_cancel");
+        orderMapper.updateOrderStatus(orderId, 4, o.getPaymentStatus());
+    }
+
+    @Transactional
+    public void confirmDelivery(Long orderId, Long userId) {
+        Order o = orderMapper.selectById(orderId);
+        if (o == null) throw new IllegalArgumentException("order_not_found");
+        if (!o.getUserId().equals(userId)) throw new IllegalArgumentException("not_owner");
+        if (o.getStatus() != 2) throw new IllegalArgumentException("not_shipped");
+        orderMapper.updateOrderStatus(orderId, 3, o.getPaymentStatus());
+    }
+
     public java.util.Map<String, Object> getSalesStats() {
         java.util.Map<String, Object> stats = new java.util.HashMap<>();
         stats.put("totalSales", orderMapper.selectTotalSales());

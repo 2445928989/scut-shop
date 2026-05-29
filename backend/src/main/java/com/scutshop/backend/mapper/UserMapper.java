@@ -44,6 +44,12 @@ public interface UserMapper {
     @Select("SELECT * FROM `user` ORDER BY created_at DESC LIMIT #{limit} OFFSET #{offset}")
     java.util.List<User> selectAll(@Param("limit") int limit, @Param("offset") int offset);
 
+    @org.apache.ibatis.annotations.Update("UPDATE `user` SET password_hash = #{hash} WHERE id = #{id}")
+    int updatePassword(@Param("id") Long id, @Param("hash") String hash);
+
+    @org.apache.ibatis.annotations.Update("UPDATE `user` SET status = #{status} WHERE id = #{id}")
+    int updateStatus(@Param("id") Long id, @Param("status") int status);
+
     @Select("SELECT COUNT(1) FROM `user`")
     int countAll();
 }

@@ -39,11 +39,11 @@ public interface ProductMapper {
                         "</script>" })
         int count(@Param("q") String q, @Param("status") Integer status);
 
-        @Insert("INSERT INTO `product` (name, sku, description, price, stock, image_url, status) VALUES (#{name}, #{sku}, #{description}, #{price}, #{stock}, #{imageUrl}, #{status})")
+        @Insert("INSERT INTO `product` (name, sku, description, price, stock, category_id, image_url, status) VALUES (#{name}, #{sku}, #{description}, #{price}, #{stock}, #{categoryId}, #{imageUrl}, #{status})")
         @Options(useGeneratedKeys = true, keyProperty = "id")
         int insert(Product p);
 
-        @Update("UPDATE `product` SET name=#{name}, sku=#{sku}, description=#{description}, price=#{price}, stock=#{stock}, image_url=#{imageUrl}, status=#{status}, updated_at=CURRENT_TIMESTAMP WHERE id=#{id}")
+        @Update("UPDATE `product` SET name=#{name}, sku=#{sku}, description=#{description}, price=#{price}, stock=#{stock}, category_id=#{categoryId}, image_url=#{imageUrl}, status=#{status}, updated_at=CURRENT_TIMESTAMP WHERE id=#{id}")
         int update(Product p);
 
         @Update("UPDATE `product` SET stock = stock - #{quantity} WHERE id = #{id} AND stock >= #{quantity}")

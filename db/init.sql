@@ -6,6 +6,18 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- ============================================================================
 -- 1. 建立数据库结构（schema）
 -- ============================================================================
+-- 分类表
+CREATE TABLE IF NOT EXISTS `category` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(100) NOT NULL,
+  `parent_id` BIGINT UNSIGNED DEFAULT NULL COMMENT '父分类ID',
+  `sort_order` INT DEFAULT 0,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_category_parent` (`parent_id`),
+  CONSTRAINT `fk_category_parent` FOREIGN KEY (`parent_id`) REFERENCES `category` (`id`) ON DELETE SET NULL
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '商品分类表';
+
 -- 用户表
 CREATE TABLE IF NOT EXISTS `user` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -38,6 +50,25 @@ CREATE TABLE IF NOT EXISTS `user_role` (
   CONSTRAINT `fk_user_role_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_user_role_role` FOREIGN KEY (`role_id`) REFERENCES `role` (`id`) ON DELETE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '用户角色关联表';
+
+-- 收货地址表
+CREATE TABLE IF NOT EXISTS `address` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` BIGINT UNSIGNED NOT NULL,
+  `recipient` VARCHAR(100) NOT NULL COMMENT '收件人',
+  `phone` VARCHAR(20) NOT NULL,
+  `province` VARCHAR(50) DEFAULT NULL,
+  `city` VARCHAR(50) DEFAULT NULL,
+  `district` VARCHAR(50) DEFAULT NULL,
+  `detail` VARCHAR(500) NOT NULL,
+  `is_default` TINYINT NOT NULL DEFAULT 0,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_address_user` (`user_id`),
+  CONSTRAINT `fk_address_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '收货地址表';
+
 -- 商品表
 CREATE TABLE IF NOT EXISTS `product` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -46,13 +77,16 @@ CREATE TABLE IF NOT EXISTS `product` (
   `description` TEXT,
   `price` DECIMAL(19, 2) NOT NULL,
   `stock` INT UNSIGNED DEFAULT 0,
+  `category_id` BIGINT UNSIGNED DEFAULT NULL,
   `image_url` VARCHAR(512),
   `status` TINYINT NOT NULL DEFAULT 1 COMMENT '1=active,0=inactive/deleted',
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_product_sku` (`sku`),
-  KEY `idx_product_status` (`status`)
+  KEY `idx_product_status` (`status`),
+  KEY `idx_product_category` (`category_id`),
+  CONSTRAINT `fk_product_category` FOREIGN KEY (`category_id`) REFERENCES `category` (`id`) ON DELETE SET NULL
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '商品表';
 -- 商品审计表（记录软删除和状态变更）
 CREATE TABLE IF NOT EXISTS `product_audit` (
@@ -159,11 +193,47 @@ CREATE TABLE IF NOT EXISTS `user_log` (
   `user_id` BIGINT UNSIGNED NOT NULL,
   `action` VARCHAR(50) NOT NULL COMMENT 'BROWSE_PRODUCT, PURCHASE, etc.',
   `details` TEXT,
+  `ip_address` VARCHAR(45) DEFAULT NULL COMMENT '用户IP地址',
+  `duration_seconds` INT DEFAULT NULL COMMENT '停留时长(秒)',
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_user_log_user` (`user_id`),
+  KEY `idx_user_log_action` (`action`),
+  KEY `idx_user_log_created` (`created_at`),
   CONSTRAINT `fk_user_log_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '用户日志表';
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '用户行为日志表';
+
+-- 登录日志表
+CREATE TABLE IF NOT EXISTS `login_log` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` BIGINT UNSIGNED NOT NULL,
+  `username` VARCHAR(64) NOT NULL,
+  `ip_address` VARCHAR(45) DEFAULT NULL,
+  `user_agent` VARCHAR(500) DEFAULT NULL,
+  `login_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_login_log_user` (`user_id`),
+  KEY `idx_login_log_time` (`login_time`),
+  CONSTRAINT `fk_login_log_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '用户登录日志表';
+
+-- 操作审计日志表
+CREATE TABLE IF NOT EXISTS `operation_log` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` BIGINT UNSIGNED NOT NULL,
+  `username` VARCHAR(64) NOT NULL,
+  `action` VARCHAR(100) NOT NULL COMMENT '操作类型',
+  `target_type` VARCHAR(50) DEFAULT NULL COMMENT '操作对象类型',
+  `target_id` BIGINT UNSIGNED DEFAULT NULL COMMENT '操作对象ID',
+  `details` TEXT COMMENT '操作详情',
+  `ip_address` VARCHAR(45) DEFAULT NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_operation_log_user` (`user_id`),
+  KEY `idx_operation_log_action` (`action`),
+  KEY `idx_operation_log_time` (`created_at`),
+  CONSTRAINT `fk_operation_log_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '操作审计日志表';
 SET FOREIGN_KEY_CHECKS = 1;
 -- ============================================================================
 -- 2. 初始化默认角色
@@ -172,10 +242,25 @@ INSERT INTO `role` (name, description)
 VALUES ('ROLE_USER', 'Default user') ON DUPLICATE KEY
 UPDATE name = name;
 INSERT INTO `role` (name, description)
+VALUES ('ROLE_SALES', 'Sales Staff') ON DUPLICATE KEY
+UPDATE name = name;
+INSERT INTO `role` (name, description)
 VALUES ('ROLE_ADMIN', 'Administrator') ON DUPLICATE KEY
 UPDATE name = name;
 -- ============================================================================
--- 3. 初始化示例商品数据
+-- 3. 初始化商品分类数据
+-- ============================================================================
+INSERT INTO `category` (id, name, parent_id, sort_order)
+VALUES (1, '手机数码', NULL, 1),
+       (2, '电脑办公', NULL, 2),
+       (3, '耳机音箱', NULL, 3),
+       (4, '食品零食', NULL, 4),
+       (5, '日用百货', NULL, 5),
+       (6, '厨房家电', NULL, 6)
+ON DUPLICATE KEY UPDATE name = VALUES(name);
+
+-- ============================================================================
+-- 4. 初始化示例商品数据
 -- ============================================================================
 INSERT INTO product (
     name,
@@ -334,7 +419,7 @@ VALUES(image_url),
   status =
 VALUES(status);
 -- ============================================================================
--- 4. 初始化默认管理员用户
+-- 5. 初始化默认管理员用户
 -- ============================================================================
 -- 【重要】初始管理员用户由 db/init_admin.sh 脚本创建
 -- 该脚本在 MySQL 容器初始化时自动执行，从 .env 文件读取以下配置：

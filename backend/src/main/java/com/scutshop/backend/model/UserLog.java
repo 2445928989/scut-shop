@@ -8,6 +8,8 @@ public class UserLog {
     private String username; // For convenience in display
     private String action; // e.g., "BROWSE_PRODUCT", "PURCHASE"
     private String details; // e.g., "Product ID: 123", "Order No: XXX"
+    private String ipAddress;
+    private Integer durationSeconds;
     private LocalDateTime createdAt;
 
     // Getters and Setters
@@ -50,6 +52,11 @@ public class UserLog {
     public void setDetails(String details) {
         this.details = details;
     }
+
+    public String getIpAddress() { return ipAddress; }
+    public void setIpAddress(String ipAddress) { this.ipAddress = ipAddress; }
+    public Integer getDurationSeconds() { return durationSeconds; }
+    public void setDurationSeconds(Integer durationSeconds) { this.durationSeconds = durationSeconds; }
 
     public LocalDateTime getCreatedAt() {
         return createdAt;

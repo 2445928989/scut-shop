@@ -5,7 +5,7 @@ COPY package.json package-lock.json* ./
 COPY . .
 ARG VITE_API_BASE=/api
 ENV VITE_API_BASE=${VITE_API_BASE}
-RUN npm config set registry https://registry.npmmirror.com && npm ci --silent
+RUN rm -rf node_modules package-lock.json && npm config set registry https://registry.npmmirror.com && npm install --legacy-peer-deps --silent
 RUN npm run build
 
 FROM nginx:stable-alpine

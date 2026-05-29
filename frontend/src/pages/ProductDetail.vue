@@ -17,6 +17,25 @@
         </div>
       </el-col>
     </el-row>
+
+    <div v-if="recommendations.length > 0" class="recommend-section" style="margin-top:40px">
+      <h3 style="margin-bottom:16px">购买此商品的人也买了...</h3>
+      <el-row :gutter="16">
+        <el-col :span="6" v-for="p in recommendations" :key="p.id">
+          <el-card shadow="hover" @click="$router.push(`/product/${p.id}`)" style="cursor:pointer;margin-bottom:12px">
+            <div style="position:relative">
+              <img :src="p.imageUrl || 'https://via.placeholder.com/200'" style="width:100%;height:150px;object-fit:cover;border-radius:4px" />
+              <span style="position:absolute;top:6px;right:6px;background:#f56c6c;color:#fff;padding:2px 8px;border-radius:10px;font-size:12px;font-weight:bold">
+                {{ p.coPercent }}%
+              </span>
+            </div>
+            <p style="font-weight:500;margin:8px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.name }}</p>
+            <p style="color:#e6a23c;font-weight:bold;margin:0">¥{{ (p.price || 0).toFixed(0) }}</p>
+            <p style="color:#909399;font-size:12px;margin:4px 0 0">{{ p.coPercent }}% 的购买者也买了这件</p>
+          </el-card>
+        </el-col>
+      </el-row>
+    </div>
   </div>
 </template>
 
@@ -30,10 +49,16 @@ import { ElMessage } from 'element-plus'
 const route = useRoute()
 const product = ref<any|null>(null)
 const cart = useCartStore()
+const recommendations = ref<any[]>([])
 
 onMounted(async ()=>{
   const r = await api.get(`/api/products/${route.params.id}`)
   product.value = r.data
+  // 加载推荐
+  try {
+    const recR = await api.get(`/api/recommend/together/${route.params.id}`, { params: { limit: 4 } })
+    recommendations.value = recR.data
+  } catch {}
 })
 
 async function addToCart(){

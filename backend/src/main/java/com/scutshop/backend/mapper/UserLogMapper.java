@@ -7,7 +7,7 @@ import java.util.List;
 
 @Mapper
 public interface UserLogMapper {
-    @Insert("INSERT INTO user_log (user_id, action, details) VALUES (#{userId}, #{action}, #{details})")
+    @Insert("INSERT INTO user_log (user_id, action, details, ip_address, duration_seconds) VALUES (#{userId}, #{action}, #{details}, #{ipAddress}, #{durationSeconds})")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(UserLog log);
 

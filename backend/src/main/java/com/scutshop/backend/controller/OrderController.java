@@ -81,8 +81,34 @@ public class OrderController {
         return ResponseEntity.ok(Map.of("items", items, "total", total, "page", page, "size", size));
     }
 
+    @PostMapping("/{id}/cancel")
+    public ResponseEntity<?> cancel(@PathVariable("id") Long id, Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated())
+            return ResponseEntity.status(401).build();
+        var u = userService.findByUsername(authentication.getName());
+        try {
+            orderService.cancelOrder(id, u.getId());
+            return ResponseEntity.ok(Map.of("status", "cancelled"));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
+        }
+    }
+
+    @PostMapping("/{id}/confirm")
+    public ResponseEntity<?> confirmDelivery(@PathVariable("id") Long id, Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated())
+            return ResponseEntity.status(401).build();
+        var u = userService.findByUsername(authentication.getName());
+        try {
+            orderService.confirmDelivery(id, u.getId());
+            return ResponseEntity.ok(Map.of("status", "confirmed"));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
+        }
+    }
+
     @GetMapping("/admin/all")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SALES')")
     public ResponseEntity<?> listAll(@RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "20") int size) {
         var items = orderService.listAll(page, size);
@@ -91,7 +117,7 @@ public class OrderController {
     }
 
     @PutMapping("/admin/{id}/status")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SALES')")
     public ResponseEntity<?> updateStatus(@PathVariable("id") Long id,
             @RequestBody UpdateStatusRequest req) {
         try {
@@ -118,7 +144,7 @@ public class OrderController {
     }
 
     @GetMapping("/admin/statistics")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SALES')")
     public ResponseEntity<?> getStatistics() {
         return ResponseEntity.ok(orderService.getSalesStats());
     }

@@ -12,11 +12,18 @@
         </template>
         <template v-else>
           <router-link to="/orders">我的订单</router-link>
+          <router-link to="/addresses">地址管理</router-link>
+          <template v-if="isSales && !isAdmin">
+            <router-link to="/sales/products">商品管理</router-link>
+            <router-link to="/sales/orders">订单管理</router-link>
+          </template>
           <template v-if="isAdmin">
             <router-link to="/admin/products">商品管理</router-link>
             <router-link to="/admin/orders">订单管理</router-link>
+            <router-link to="/admin/dashboard">数据大屏</router-link>
             <router-link to="/admin/reports">销售报表</router-link>
             <router-link to="/admin/users">用户日志</router-link>
+            <router-link to="/admin/sales">销售人员</router-link>
           </template>
           <span class="username-pill">{{username}}</span>
           <el-button type="text" @click="logout">登出</el-button>
@@ -41,6 +48,7 @@ import { useAuthStore } from './stores/auth'
 const auth = useAuthStore()
 const isAuth = computed(() => !!auth.accessToken)
 const isAdmin = computed(() => auth.isAdmin)
+const isSales = computed(() => auth.isSales)
 const username = computed(() => auth.username)
 if (auth.accessToken) { // fetch user info on app start when token present
   void auth.fetchMe()

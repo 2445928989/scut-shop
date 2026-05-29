@@ -20,6 +20,48 @@ public class UserService {
         this.userLogMapper = userLogMapper;
     }
 
+    public int createUserWithRole(User user, String plainPassword, String roleName) {
+        user.setPasswordHash(passwordEncoder.encode(plainPassword));
+        if (user.getStatus() == null)
+            user.setStatus(1);
+        int n = userMapper.insert(user);
+        Long roleId = userMapper.selectRoleIdByName("ROLE_USER");
+        if (user.getId() != null && roleId != null) {
+            userMapper.insertUserRole(user.getId(), roleId);
+        }
+        // assign additional role if specified and not ROLE_USER
+        if (roleName != null && !"ROLE_USER".equals(roleName)) {
+            Long extraRoleId = userMapper.selectRoleIdByName(roleName);
+            if (extraRoleId != null && user.getId() != null) {
+                userMapper.insertUserRole(user.getId(), extraRoleId);
+            }
+        }
+        return n;
+    }
+
+    public void resetPassword(Long userId, String newPassword) {
+        String hash = passwordEncoder.encode(newPassword);
+        userMapper.updatePassword(userId, hash);
+    }
+
+    public void logAction(Long userId, String action, String details) {
+        UserLog log = new UserLog();
+        log.setUserId(userId);
+        log.setAction(action);
+        log.setDetails(details);
+        userLogMapper.insert(log);
+    }
+
+    public void logAction(Long userId, String action, String details, String ipAddress, Integer durationSeconds) {
+        UserLog log = new UserLog();
+        log.setUserId(userId);
+        log.setAction(action);
+        log.setDetails(details);
+        log.setIpAddress(ipAddress);
+        log.setDurationSeconds(durationSeconds);
+        userLogMapper.insert(log);
+    }
+
     public User findByUsername(String username) {
         return userMapper.selectByUsername(username);
     }
@@ -64,20 +106,16 @@ public class UserService {
         return userMapper.updateStatusAndClearToken(userId, 1);
     }
 
+    public int disableUser(Long userId) {
+        return userMapper.updateStatus(userId, 0);
+    }
+
     public List<User> listAll(int page, int size) {
         return userMapper.selectAll(size, (page - 1) * size);
     }
 
     public int countAll() {
         return userMapper.countAll();
-    }
-
-    public void logAction(Long userId, String action, String details) {
-        UserLog log = new UserLog();
-        log.setUserId(userId);
-        log.setAction(action);
-        log.setDetails(details);
-        userLogMapper.insert(log);
     }
 
     public List<UserLog> listLogs(Long userId, int page, int size) {

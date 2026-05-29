@@ -112,6 +112,17 @@
     >
       <div class="payment-dialog-content">
         <p class="payment-amount">支付金额：<span>¥{{ totalPrice.toFixed(2) }}</span></p>
+        <div class="address-select" style="width:100%;margin-bottom:16px">
+          <p style="margin-bottom:8px;font-weight:500">收货地址：</p>
+          <el-select v-model="selectedAddressId" placeholder="请选择地址" style="width:100%" v-if="addresses.length>0">
+            <el-option v-for="a in addresses" :key="a.id" :value="a.id"
+              :label="`${a.recipient} ${a.phone} ${a.province||''}${a.city||''}${a.district||''} ${a.detail}`" />
+          </el-select>
+          <el-empty v-else description="暂无地址" :image-size="60" />
+          <el-button type="primary" link size="small" @click="router.push('/addresses')" style="margin-top:4px">
+            管理收货地址
+          </el-button>
+        </div>
         <div class="qr-placeholder">
           <el-image 
             src="/payment-qr.jpg" 
@@ -157,10 +168,22 @@ const totalPrice = computed(() => cart.totalPrice)
 const hasOffShelfItems = computed(() => items.value.some(item => item.status === 0))
 const loading = ref(true)
 const showPaymentDialog = ref(false)
+const addresses = ref<any[]>([])
+const selectedAddressId = ref<number | null>(null)
 
 onMounted(async () => {
   await fetchCart()
+  loadAddresses()
 })
+
+async function loadAddresses() {
+  try {
+    const r = await api.get('/api/addresses')
+    addresses.value = r.data
+    const def = addresses.value.find((a:any) => a.isDefault === 1)
+    if (def) selectedAddressId.value = def.id
+  } catch {}
+}
 
 async function fetchCart() {
   loading.value = true
@@ -291,6 +314,10 @@ async function checkout() {
     ElMessage.warning('购物车中包含已下架商品，请移除后再结算')
     return
   }
+  if (addresses.value.length === 0) {
+    ElMessage.warning('请先在地址管理中添加收货地址')
+    return
+  }
   showPaymentDialog.value = true
 }
 
@@ -298,7 +325,7 @@ async function confirmPayment() {
   try {
     loading.value = true
     console.log('Starting checkout process...')
-    const r = await api.post('/api/orders/checkout', { paymentMethod: 'mock' })
+    const r = await api.post('/api/orders/checkout', { paymentMethod: 'mock', addressId: selectedAddressId.value })
     console.log('Checkout success:', r.data)
     cart.clear()
     localStorage.removeItem('cartId')
