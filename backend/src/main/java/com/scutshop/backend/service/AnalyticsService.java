@@ -46,7 +46,8 @@ public class AnalyticsService {
     }
 
     /**
-     * Holt-Winters 三次指数平滑（乘法季节性），捕捉水平+趋势+周期
+     * Holt-Winters 加法季节性 + 线性回归混合预测
+     * 加法模型对稀疏数据更稳定，不会因近零的季节因子而放大异常
      */
     public List<Map<String, Object>> salesForecast(int days, int forecastDays) {
         var dailySales = orderMapper.selectDailySalesRange(days);
@@ -60,76 +61,81 @@ public class AnalyticsService {
         if (values.isEmpty()) return Collections.emptyList();
 
         int n = values.size();
-        int seasonLength = 7; // 周周期
-        if (n < seasonLength * 2) {
-            // 数据不足两个周期，退化为 Holt 双指数平滑
-            return holtForecast(values, forecastDays);
+
+        // 计算均值和标准差，检测数据质量
+        double mean = values.stream().mapToDouble(Double::doubleValue).average().orElse(0);
+        double variance = values.stream().mapToDouble(v -> Math.pow(v - mean, 2)).average().orElse(0);
+        double stdDev = Math.sqrt(variance);
+        double cv = mean > 0 ? stdDev / mean : 999; // 变异系数
+
+        // 数据太稀疏或波动过大，用简单线性回归更可靠
+        if (n < 14 || cv > 3.0) {
+            return linearRegressionForecast(values, forecastDays);
         }
 
-        // Holt-Winters 乘法季节性
-        double alpha = 0.3;  // 水平
-        double beta = 0.15;  // 趋势
-        double gamma = 0.3;  // 季节
+        // Holt-Winters 加法季节性
+        int seasonLength = 7;
+        double alpha = 0.2;  // 水平
+        double beta = 0.1;   // 趋势
+        double gamma = 0.15; // 季节
 
-        // 初始化水平：第一个周期的均值
+        // 初始化水平
         double initLevel = 0;
         for (int i = 0; i < seasonLength; i++) initLevel += values.get(i);
         initLevel /= seasonLength;
 
-        // 初始化趋势：两个周期之间的平均趋势
-        double initTrend = 0;
-        for (int i = 0; i < seasonLength; i++) {
-            initTrend += (values.get(i + seasonLength) - values.get(i)) / seasonLength;
-        }
-        initTrend /= seasonLength;
+        // 初始化趋势
+        double initTrend = (values.get(seasonLength) - values.get(0)) / seasonLength;
 
-        // 初始化季节因子
+        // 初始化加法季节分量: S_i = Y_i - L
         double[] seasonals = new double[seasonLength];
         for (int i = 0; i < seasonLength; i++) {
-            seasonals[i] = values.get(i) / initLevel;
+            seasonals[i] = values.get(i) - initLevel;
         }
 
         double level = initLevel;
         double trend = initTrend;
 
-        // 对全部历史数据做平滑
+        // 平滑
         for (int i = 0; i < n; i++) {
             int sIdx = i % seasonLength;
             double prevLevel = level;
-            if (seasonals[sIdx] < 0.01) seasonals[sIdx] = 0.01;
-            level = alpha * (values.get(i) / seasonals[sIdx]) + (1 - alpha) * (level + trend);
+            level = alpha * (values.get(i) - seasonals[sIdx]) + (1 - alpha) * (level + trend);
             trend = beta * (level - prevLevel) + (1 - beta) * trend;
-            seasonals[sIdx] = gamma * (values.get(i) / level) + (1 - gamma) * seasonals[sIdx];
-            if (seasonals[sIdx] < 0.01) seasonals[sIdx] = 0.01;
+            seasonals[sIdx] = gamma * (values.get(i) - level) + (1 - gamma) * seasonals[sIdx];
         }
 
-        // 预测
         List<Map<String, Object>> forecast = new ArrayList<>();
         for (int i = 1; i <= forecastDays; i++) {
             Map<String, Object> point = new HashMap<>();
             point.put("day", i);
             int sIdx = (n + i - 1) % seasonLength;
-            double val = (level + i * trend) * seasonals[sIdx];
+            double val = level + i * trend + seasonals[sIdx];
             point.put("amount", Math.max(0, Math.round(val * 100.0) / 100.0));
             forecast.add(point);
         }
         return forecast;
     }
 
-    private List<Map<String, Object>> holtForecast(List<Double> values, int forecastDays) {
-        double alpha = 0.4, beta = 0.3;
-        double level = values.get(0);
-        double trend = values.get(1) - values.get(0);
-        for (double v : values) {
-            double prevLevel = level;
-            level = alpha * v + (1 - alpha) * (level + trend);
-            trend = beta * (level - prevLevel) + (1 - beta) * trend;
+    /** 简单线性回归预测：对稀疏/噪声数据更稳健 */
+    private List<Map<String, Object>> linearRegressionForecast(List<Double> values, int forecastDays) {
+        int n = values.size();
+        double sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+        for (int i = 0; i < n; i++) {
+            sumX += i;
+            sumY += values.get(i);
+            sumXY += i * values.get(i);
+            sumX2 += i * i;
         }
+        double slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+        double intercept = (sumY - slope * sumX) / n;
+
         List<Map<String, Object>> forecast = new ArrayList<>();
         for (int i = 1; i <= forecastDays; i++) {
             Map<String, Object> point = new HashMap<>();
             point.put("day", i);
-            point.put("amount", Math.round((level + i * trend) * 100.0) / 100.0);
+            double val = intercept + slope * (n + i);
+            point.put("amount", Math.max(0, Math.round(val * 100.0) / 100.0));
             forecast.add(point);
         }
         return forecast;

@@ -84,13 +84,30 @@ echo "  done, 总计 $TOTAL 笔"
 
 # 分散日期到过去30天
 echo ">>> 5. 分散日期"
+# 从 .env 读取密码，兜底用默认值
+if [ -f .env ]; then
+  DB_PASS=$(grep -oP 'MYSQL_PASSWORD=\K.*' .env | head -1)
+fi
 DB_PASS="${DB_PASS:-changeme_db_pw}"
-docker compose exec -T db mysql -u scut_user -p"$DB_PASS" scut_shop -e "
+echo "  using db password: ${DB_PASS:0:1}***"
+
+# 分批更新，避免一次性处理太多
+ORDER_COUNT=$(docker compose exec -T db mysql -u scut_user -p"$DB_PASS" scut_shop -N -e "SELECT COUNT(*) FROM \`order\`" 2>/dev/null)
+echo "  orders: $ORDER_COUNT"
+
+if [ -n "$ORDER_COUNT" ] && [ "$ORDER_COUNT" -gt 0 ]; then
+  docker compose exec -T db mysql -u scut_user -p"$DB_PASS" scut_shop <<SQL 2>/dev/null
 DROP TEMPORARY TABLE IF EXISTS t;
-CREATE TEMPORARY TABLE t AS SELECT id, ROW_NUMBER() OVER (ORDER BY id)-1 rn, COUNT(*) OVER () total FROM \`order\`;
-UPDATE \`order\` o JOIN t ON o.id=t.id SET o.created_at=DATE_SUB(NOW(), INTERVAL FLOOR(30*t.rn/t.total) DAY), o.updated_at=DATE_SUB(NOW(), INTERVAL FLOOR(30*t.rn/t.total) DAY);
-" 2>/dev/null
-echo "  done"
+CREATE TEMPORARY TABLE t AS
+  SELECT id, ROW_NUMBER() OVER (ORDER BY id) - 1 AS rn, COUNT(*) OVER () AS total FROM \`order\`;
+UPDATE \`order\` o JOIN t ON o.id = t.id
+  SET o.created_at = DATE_SUB(NOW(), INTERVAL FLOOR(30 * t.rn / t.total) DAY),
+      o.updated_at = DATE_SUB(NOW(), INTERVAL FLOOR(30 * t.rn / t.total) DAY);
+SQL
+  echo "  done"
+else
+  echo "  skip (no orders)"
+fi
 
 # 统计
 echo ">>> 6. 统计"
