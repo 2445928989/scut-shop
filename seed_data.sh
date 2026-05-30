@@ -1,138 +1,105 @@
 #!/bin/bash
-# ============================================================
 # SCUT-Shop 测试数据生成脚本
-# 用法: bash seed_data.sh
-# 前提: docker compose up -d 已启动
-# ============================================================
+# 用法: bash seed_data.sh [admin密码]
+# 默认管理员密码: Admin@2024
+
 set -e
+API="http://127.0.0.1:3000/api"
+ADMIN_PASS="${1:-Admin@2024}"
+TOTAL=0
 
-API="${API:-http://127.0.0.1:3000/api}"
-C="curl -s --noproxy '*'"
-TOTAL_ORDERS=0
-
-# 颜色输出
-green() { echo -e "\033[32m$1\033[0m"; }
-blue()  { echo -e "\033[34m$1\033[0m"; }
-yellow(){ echo -e "\033[33m$1\033[0m"; }
-
-# 登录函数
 login() {
-  echo '{"username":"'$1'","password":"'$2'"}' | \
-    $C -X POST -H "Content-Type: application/json" -d @- "$API/auth/login" | \
-    python3 -c "import sys,json; print(json.load(sys.stdin)['accessToken'])" 2>/dev/null
+  curl -s -X POST "$API/auth/login" -H "Content-Type: application/json" \
+    -d "{\"username\":\"$1\",\"password\":\"$2\"}" \
+    | python3 -c "import sys,json; print(json.load(sys.stdin)['accessToken'])"
 }
 
-# 下单函数: make_order <token> <address_id> <product_ids...>
-make_order() {
-  local TOKEN=$1; local ADDR=$2; shift 2
-  for pid in "$@"; do
-    $C -X POST "$API/cart/items" -H "Content-Type: application/json" \
-       -H "Authorization: Bearer $TOKEN" -d "{\"productId\":$pid,\"quantity\":1}" > /dev/null
-  done
-  $C -X POST "$API/orders/checkout" -H "Content-Type: application/json" \
-     -H "Authorization: Bearer $TOKEN" -d "{\"paymentMethod\":\"mock\",\"addressId\":$ADDR}" > /dev/null
-  TOTAL_ORDERS=$((TOTAL_ORDERS + 1))
-}
-
-# ============================================================
-blue "====== SCUT-Shop 测试数据生成 ======"
-echo ""
-
-# ---- 1. 创建用户 ----
-green ">>> 1. 创建测试用户"
-USERS=("alice" "bob" "carol" "dave" "eve")
-EMAILS=("alice@test.com" "bob@test.com" "carol@test.com" "dave@test.com" "eve@test.com")
-PASS="Test1234!"
-PROVINCES=("广东" "北京" "上海" "浙江" "江苏")
-CITIES=("广州" "北京" "上海" "杭州" "南京")
+# 创建测试用户
+echo ">>> 1. 创建用户"
+USERS=(alice bob carol dave eve)
 TOKENS=()
-
-for i in "${!USERS[@]}"; do
-  $C -X POST "$API/auth/register" -H "Content-Type: application/json" \
-     -d "{\"username\":\"${USERS[$i]}\",\"email\":\"${EMAILS[$i]}\",\"password\":\"$PASS\"}" > /dev/null 2>&1 || true
-  TOKENS[$i]=$(login "${USERS[$i]}" "$PASS")
-  echo "  ✓ ${USERS[$i]}"
+for u in "${USERS[@]}"; do
+  curl -s -X POST "$API/auth/register" -H "Content-Type: application/json" \
+    -d "{\"username\":\"$u\",\"email\":\"${u}@test.com\",\"password\":\"Test1234!\"}" > /dev/null 2>/dev/null || true
+  TOKENS+=("$(login "$u" 'Test1234!')")
+  echo "  $u"
 done
 
-# ---- 2. 创建地址 ----
-green ">>> 2. 创建收货地址"
+# 创建地址
+echo ">>> 2. 地址"
+CITIES=(广州 北京 上海 杭州 南京)
+PROVS=(广东 北京 上海 浙江 江苏)
 for i in "${!USERS[@]}"; do
-  $C -X POST "$API/addresses" -H "Content-Type: application/json" \
-     -H "Authorization: Bearer ${TOKENS[$i]}" \
-     -d "{\"recipient\":\"${USERS[$i]}\",\"phone\":\"1380000000$i\",\"province\":\"${PROVINCES[$i]}\",\"city\":\"${CITIES[$i]}\",\"district\":\"中心区\",\"detail\":\"街道${i}号\",\"isDefault\":1}" > /dev/null
-  echo "  ✓ ${USERS[$i]} → ${PROVINCES[$i]} ${CITIES[$i]}"
+  curl -s -X POST "$API/addresses" -H "Content-Type: application/json" \
+    -H "Authorization: Bearer ${TOKENS[$i]}" \
+    -d "{\"recipient\":\"${USERS[$i]}\",\"phone\":\"1380000000$i\",\"province\":\"${PROVS[$i]}\",\"city\":\"${CITIES[$i]}\",\"district\":\"中心区\",\"detail\":\"街道${i}号\",\"isDefault\":1}" > /dev/null
 done
+echo "  done"
 
-# ---- 3. 单品随机订单（每日均匀分布） ----
-green ">>> 3. 生成每日随机订单（30天）"
-for i in $(seq 1 3); do  # 每天 1~3 单
-  for u in "${!USERS[@]}"; do
+# 随机下单（30天均匀分布）
+echo ">>> 3. 随机订单"
+for round in 1 2 3; do
+  for i in "${!USERS[@]}"; do
     PID=$((RANDOM % 14 + 1))
-    make_order "${TOKENS[$u]}" $((u+1)) $PID
+    curl -s -X POST "$API/cart/items" -H "Content-Type: application/json" \
+      -H "Authorization: Bearer ${TOKENS[$i]}" \
+      -d "{\"productId\":$PID,\"quantity\":1}" > /dev/null
+    curl -s -X POST "$API/orders/checkout" -H "Content-Type: application/json" \
+      -H "Authorization: Bearer ${TOKENS[$i]}" \
+      -d "{\"paymentMethod\":\"mock\",\"addressId\":$((i+1))}" > /dev/null
+    TOTAL=$((TOTAL+1))
   done
 done
-echo "  ✓ $TOTAL_ORDERS 笔"
+echo "  $TOTAL 笔"
 
-# ---- 4. 多样化关联订单 ----
-green ">>> 4. 生成关联购买订单"
-
-# 手机配件组合: iPhone + 耳机（高频共现）
-blue "  手机配件..."
-for i in 1 2 3; do make_order "${TOKENS[0]}" 1 1 7; done  # alice: iPhone+索尼耳机 x3
-make_order "${TOKENS[1]}" 2 1 7                            # bob
-make_order "${TOKENS[2]}" 3 1 7                            # carol
-make_order "${TOKENS[0]}" 1 1 8                            # alice: iPhone+AirPods
-make_order "${TOKENS[1]}" 2 1 8                            # bob
-make_order "${TOKENS[4]}" 5 1 7                            # eve: iPhone+索尼
-
-# 电脑配件组合
-blue "  电脑配件..."
-for i in 1 2; do make_order "${TOKENS[1]}" 2 4 7; done     # bob: MacBook+索尼耳机 x2
-make_order "${TOKENS[2]}" 3 4 8                            # carol: MacBook+AirPods
-make_order "${TOKENS[3]}" 4 4 5                            # dave: MacBook+拯救者
-
+# 关联订单
+echo ">>> 4. 关联订单"
+# 手机+耳机
+for i in 1 2 3; do
+  curl -s -X POST "$API/cart/items" -H "Content-Type: application/json" -H "Authorization: Bearer ${TOKENS[0]}" -d '{"productId":1,"quantity":1}' > /dev/null
+  curl -s -X POST "$API/cart/items" -H "Content-Type: application/json" -H "Authorization: Bearer ${TOKENS[0]}" -d '{"productId":7,"quantity":1}' > /dev/null
+  curl -s -X POST "$API/orders/checkout" -H "Content-Type: application/json" -H "Authorization: Bearer ${TOKENS[0]}" -d '{"paymentMethod":"mock","addressId":1}' > /dev/null
+  TOTAL=$((TOTAL+1))
+done
+# 电脑+耳机
+for i in 1 2; do
+  curl -s -X POST "$API/cart/items" -H "Content-Type: application/json" -H "Authorization: Bearer ${TOKENS[1]}" -d '{"productId":4,"quantity":1}' > /dev/null
+  curl -s -X POST "$API/cart/items" -H "Content-Type: application/json" -H "Authorization: Bearer ${TOKENS[1]}" -d '{"productId":7,"quantity":1}' > /dev/null
+  curl -s -X POST "$API/orders/checkout" -H "Content-Type: application/json" -H "Authorization: Bearer ${TOKENS[1]}" -d '{"paymentMethod":"mock","addressId":2}' > /dev/null
+  TOTAL=$((TOTAL+1))
+done
 # 零食组合
-blue "  零食组合..."
-for i in 1 2 3; do make_order "${TOKENS[2]}" 3 10 11; done # carol: 坚果+薯片 x3
-for i in 1 2;   do make_order "${TOKENS[3]}" 4 10 12; done # dave: 坚果+猪肉脯 x2
-make_order "${TOKENS[4]}" 5 11 12                            # eve: 薯片+猪肉脯
+for i in 1 2 3; do
+  curl -s -X POST "$API/cart/items" -H "Content-Type: application/json" -H "Authorization: Bearer ${TOKENS[2]}" -d '{"productId":10,"quantity":1}' > /dev/null
+  curl -s -X POST "$API/cart/items" -H "Content-Type: application/json" -H "Authorization: Bearer ${TOKENS[2]}" -d '{"productId":11,"quantity":1}' > /dev/null
+  curl -s -X POST "$API/orders/checkout" -H "Content-Type: application/json" -H "Authorization: Bearer ${TOKENS[2]}" -d '{"paymentMethod":"mock","addressId":3}' > /dev/null
+  TOTAL=$((TOTAL+1))
+done
+# 日用品
+curl -s -X POST "$API/cart/items" -H "Content-Type: application/json" -H "Authorization: Bearer ${TOKENS[4]}" -d '{"productId":13,"quantity":1}' > /dev/null
+curl -s -X POST "$API/cart/items" -H "Content-Type: application/json" -H "Authorization: Bearer ${TOKENS[4]}" -d '{"productId":14,"quantity":1}' > /dev/null
+curl -s -X POST "$API/orders/checkout" -H "Content-Type: application/json" -H "Authorization: Bearer ${TOKENS[4]}" -d '{"paymentMethod":"mock","addressId":5}' > /dev/null
+TOTAL=$((TOTAL+1))
+echo "  done, 总计 $TOTAL 笔"
 
-# 日用品组合
-blue "  日用品..."
-for i in 1 2; do make_order "${TOKENS[4]}" 5 13 14; done   # eve: 抽纸+洗衣液 x2
-make_order "${TOKENS[0]}" 1 13 15                            # alice: 抽纸+电水壶
-
-echo "  ✓ 关联订单创建完成"
-
-# ---- 5. 订单日期分散到过去30天 ----
-green ">>> 5. 分散订单日期"
-docker.exe compose -f "$(dirname "$0")/docker-compose.yml" exec -T db \
-  mysql -u scut_user -pchangeme_db_pw scut_shop -e "
-DROP TEMPORARY TABLE IF EXISTS tmp_seed_orders;
-CREATE TEMPORARY TABLE tmp_seed_orders AS
-  SELECT id, ROW_NUMBER() OVER (ORDER BY id) - 1 as rn, COUNT(*) OVER () as total
-  FROM \`order\`;
-UPDATE \`order\` o JOIN tmp_seed_orders t ON o.id = t.id
-SET o.created_at = DATE_SUB(NOW(), INTERVAL FLOOR(30 * t.rn / t.total) DAY),
-    o.updated_at = DATE_SUB(NOW(), INTERVAL FLOOR(30 * t.rn / t.total) DAY);
+# 分散日期到过去30天
+echo ">>> 5. 分散日期"
+DB_PASS="${DB_PASS:-changeme_db_pw}"
+docker compose exec -T db mysql -u scut_user -p"$DB_PASS" scut_shop -e "
+DROP TEMPORARY TABLE IF EXISTS t;
+CREATE TEMPORARY TABLE t AS SELECT id, ROW_NUMBER() OVER (ORDER BY id)-1 rn, COUNT(*) OVER () total FROM \`order\`;
+UPDATE \`order\` o JOIN t ON o.id=t.id SET o.created_at=DATE_SUB(NOW(), INTERVAL FLOOR(30*t.rn/t.total) DAY), o.updated_at=DATE_SUB(NOW(), INTERVAL FLOOR(30*t.rn/t.total) DAY);
 " 2>/dev/null
-echo "  ✓ 日期已分散"
+echo "  done"
 
-# ---- 6. 最终统计 ----
-ADMIN_TOKEN=$(login "admin" "Admin@2024")
-green ">>> 6. 数据统计"
-echo ""
-$C -H "Authorization: Bearer $ADMIN_TOKEN" "$API/analytics/sales-stats?range=30" | python3 -c "
+# 统计
+echo ">>> 6. 统计"
+ATOKEN=$(login "admin" "$ADMIN_PASS")
+curl -s -H "Authorization: Bearer $ATOKEN" "$API/analytics/sales-stats?range=30" | python3 -c "
 import sys,json
 d=json.load(sys.stdin)
-print(f'  总订单: {d[\"totalOrders\"]}')
-print(f'  总销售额: ¥{d[\"totalSales\"]}')
-ds = d.get('dailySales',[])
-if ds:
-    amt_first = ds[0].get('amount',0)
-    amt_last  = ds[-1].get('amount',0)
-    print(f'  日期范围: {ds[0][\"date\"]} ~ {ds[-1][\"date\"]}')
-" 2>/dev/null
-
-echo ""
-yellow "====== 完成！访问 http://localhost:3000 ======"
+print(f'  总订单: {d[\"totalOrders\"]}  总销售额: ¥{d[\"totalSales\"]}')
+ds=d.get('dailySales',[])
+if ds: print(f'  日期: {ds[0][\"date\"]} ~ {ds[-1][\"date\"]}')
+"
+echo ">>> 完成"
