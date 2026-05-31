@@ -81,8 +81,10 @@ public class AuthController {
                     emailService.sendActivationEmail(email, link);
                 } catch (Exception mailEx) {
                     log.warn("Failed to send activation email to {}: {}", email, mailEx.getMessage());
+                    // 邮件发送失败，直接激活用户，不阻塞注册流程
+                    userService.activateUser(created.getId());
                     return ResponseEntity.ok(Map.of("status", "registered", "activation", "failed",
-                            "activateLink", link));
+                            "activated", true, "message", "邮件发送失败但账号已自动激活"));
                 }
                 return ResponseEntity.ok(Map.of("status", "registered", "activation", "sent"));
             }
