@@ -77,7 +77,13 @@ public class AuthController {
                     frontendBase = frontendBase.substring(0, frontendBase.length() - 1);
                 }
                 String link = frontendBase + "/activate?token=" + token;
-                emailService.sendActivationEmail(email, link);
+                try {
+                    emailService.sendActivationEmail(email, link);
+                } catch (Exception mailEx) {
+                    log.warn("Failed to send activation email to {}: {}", email, mailEx.getMessage());
+                    return ResponseEntity.ok(Map.of("status", "registered", "activation", "failed",
+                            "activateLink", link));
+                }
                 return ResponseEntity.ok(Map.of("status", "registered", "activation", "sent"));
             }
             return ResponseEntity.ok(Map.of("status", "registered"));
